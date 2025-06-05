@@ -2,7 +2,6 @@ import { defineConfig, loadEnv, type UserConfig, type PluginOption } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'node:path' // 导入 path 模块，需要 @types/node
 import dayjs from 'dayjs'
-import VueRouter from 'unplugin-vue-router/vite' // 1. 导入插件
 import tailwindcss from '@tailwindcss/vite' // Tailwind CSS Vite 插件
 
 // Vite 插件
@@ -10,6 +9,8 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import ViteRestart from 'vite-plugin-restart'
 import { visualizer } from 'rollup-plugin-visualizer'
+import Pages from 'vite-plugin-pages' // 用于自动生成路由
+import Layouts from 'vite-plugin-vue-layouts-next' // 新的布局插件
 
 const tauriDevHost = process.env.TAURI_DEV_HOST // @types/node 安装后，process 将被识别
 
@@ -40,25 +41,19 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
 
   // 明确定义插件数组类型
   const vitePlugins: PluginOption[] = [
-    VueRouter({
-      // 2. 添加插件到 plugins 数组
-      // --- 插件选项 (可选) ---
-      routesFolder: 'src/pages', // 指定存放页面组件的文件夹，默认为 'src/pages'
-      // 你也可以指定多个文件夹: ['src/pages', 'src/features/**/routes']
-      dts: './src/types/typed-router.d.ts', // 生成的路由类型声明文件路径
-      // extensions: ['.vue', '.md'], // 路由组件的文件扩展名，默认 ['.vue']
-      // routeBlockLang: 'json5', // <route>块的语言，默认 'json5'
-    }),
     vue(),
+    Pages({
+      dirs: 'src/pages', // 页面组件的目录
+      // ... 其他 vite-plugin-pages 配置
+    }),
+    Layouts({
+      layoutsDirs: 'src/layouts', // 布局组件的目录 (默认就是 'src/layouts')
+      defaultLayout: 'default', // 默认布局的文件名 (默认就是 'default')
+      // ... 其他 vite-plugin-vue-layouts-next 配置 (如有需要，参考其文档)
+    }),
     tailwindcss(),
     AutoImport({
-      imports: [
-        'vue',
-        'vue-router',
-        {
-          'unplugin-vue-router/runtime': ['definePage'], // 显式添加
-        },
-      ],
+      imports: ['vue', 'vue-router'],
       resolvers: [],
       dts: 'src/types/auto-imports.d.ts',
       eslintrc: {

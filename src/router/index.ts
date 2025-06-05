@@ -1,23 +1,37 @@
 // src/router/index.ts
-import { createRouter, createWebHistory } from 'vue-router' // <--- 从标准 'vue-router' 导入
-import { routes as generatedRoutes } from 'vue-router/auto-routes' // <--- 从 'vue-router/auto-routes' 导入
+import type { Router } from 'vue-router'
 
-// 你可以在这里查看或修改自动生成的路由
-console.log('自动生成的路由:', generatedRoutes)
+// 模拟一个获取用户登录状态的函数
+const isLoggedIn = (): boolean => {
+  // 在这里实现你的登录状态检查逻辑，例如从 localStorage, Vuex/Pinia store 读取
+  return !!localStorage.getItem('user-token')
+}
 
-// 例如，添加一个全局的 404 路由 (如果你的文件结构没有生成 catch-all 路由)
-// const notFoundRoute = {
-//   path: '/:pathMatch(.*)*', // 匹配所有未匹配到的路径
-//   name: 'NotFound',
-//   component: () => import('@/pages/_NotFound.vue') // 假设你有一个 NotFound 页面在 src/pages/_NotFound.vue
-// };
+export function setupRouterGuards(router: Router) {
+  router.beforeEach((to, from, next) => {
+    console.log(`Navigating to: ${to.path}`)
 
-const finalRoutes = [...generatedRoutes]
+    // 检查路由是否需要登录
+    if (to.meta.requiresAuth && !isLoggedIn()) {
+      // 用户未登录且页面需要认证，跳转到登录页
+      // 同时可以保存用户想去的页面路径，以便登录后跳转回来
+      next({
+        path: '/login', // 假设你的登录页路由是 /login
+        query: { redirect: to.fullPath }, // 可选：登录后重定向回原页面
+      })
+    } else if (to.path === '/login' && isLoggedIn()) {
+      // 如果用户已登录，访问登录页时直接跳转到首页或之前页面
+      next('/') // 或者 next(from.fullPath || '/')
+    } else {
+      // 其他情况正常跳转
+      next()
+    }
+  })
 
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: finalRoutes, // 使用你处理过的路由数组
-})
-
-// ... (导航守卫)
-export default router
+  router.afterEach((to, from) => {
+    // 可以在这里添加一些路由切换后的逻辑，比如页面标题设置、分析等
+    // console.log(`Mapsd to ${to.path}`);
+    // 打印所有路由信息
+    console.log('All routes:', router.getRoutes())
+  })
+}

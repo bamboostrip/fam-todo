@@ -1,3 +1,12 @@
+<route lang="json5">
+{
+  name: 'home',
+  meta: {
+    requiresAuth: false,
+  },
+  layout: 'other',
+}
+</route>
 <template>
   <div>
     <h2>常规数据列表 (自动加载)</h2>
@@ -27,18 +36,7 @@
       <pre>{{ fooItemData.id }}</pre>
     </div>
   </div>
-  <Button
-    variant="outline"
-    @click="
-      () => {
-        toast.success('已添加到日历', {
-          description: '这是一个成功的提示',
-        })
-      }
-    "
-  >
-    添加到日历
-  </Button>
+  <Button variant="outline" @click="goLogin">添加到日历</Button>
 </template>
 
 <script lang="ts" setup>
@@ -47,15 +45,13 @@ import { useRequest } from 'alova/client'
 import { getFooList, getSingleFoo } from '@/service/index/foo' // 2. 导入你的 API Method
 import { Button } from '@/components/ui/button'
 import { toast } from 'vue-sonner'
-// import { definePage } from 'unplugin-vue-router/runtime'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 
-definePage({
-  meta: {
-    layout: 'default-layout',
-    title: '另一个演示页', // 用这个 title 来设置 document.title
-    requiresAuth: false, // 是否需要登录
-  },
-})
+// 跳转到login
+const goLogin = () => {
+  router.push('/login')
+}
 
 // --- 示例1: 获取列表，组件挂载时自动执行 ---
 const {

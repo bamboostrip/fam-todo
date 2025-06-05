@@ -9,7 +9,11 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["./src/typings.d.ts"],
+    "types": [
+      "./src/typings.d.ts",
+      "vite-plugin-pages/client",
+      "vite-plugin-vue-layouts-next/client"
+    ],
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
