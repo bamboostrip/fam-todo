@@ -10,7 +10,9 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppSidebar: typeof import('./../components/AppSidebar.vue')['default']
     Button: typeof import('./../components/ui/button/Button.vue')['default']
+    Checkbox: typeof import('./../components/ui/checkbox/Checkbox.vue')['default']
     Input: typeof import('./../components/ui/input/Input.vue')['default']
+    Label: typeof import('./../components/ui/label/Label.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Separator: typeof import('./../components/ui/separator/Separator.vue')['default']

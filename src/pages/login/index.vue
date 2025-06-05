@@ -159,16 +159,12 @@
               {{ formErrors.password }}
             </p>
           </div>
-
           <!-- 记住我选项 -->
           <div class="flex items-center space-x-2">
-            <input
-              id="remember"
-              v-model="loginForm.remember"
-              type="checkbox"
-              class="rounded border-gray-300 text-primary focus:ring-primary focus:ring-offset-0"
-            />
-            <label for="remember" class="text-sm text-muted-foreground">记住我</label>
+            <Checkbox id="remember" v-model:checked="loginForm.remember" />
+            <Label for="remember" class="text-sm text-muted-foreground cursor-pointer">
+              记住我
+            </Label>
           </div>
         </div>
         <!-- 登录按钮 -->
@@ -260,6 +256,8 @@ import { toast } from 'vue-sonner'
 import { useRouter, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { validateUsername, validatePassword } from '@/utils/validation'
 import { useUserStore } from '@/store/user'
 import ThemeToggle from '@/components/ThemeToggle.vue'
