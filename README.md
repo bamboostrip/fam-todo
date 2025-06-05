@@ -9,7 +9,6 @@
 - Vue 3 - 渐进式 JavaScript 框架
 - TypeScript - 类型安全的 JavaScript 超集
 - Vite - 现代前端构建工具
-- Element Plus - Vue 3 的组件库
 - Pinia - Vue 的状态管理解决方案
 - Alova - 轻量级请求策略库
 - Vue Router - Vue.js 的官方路由
@@ -42,7 +41,6 @@
 - 🚀 基于 Tauri 2.0，构建轻量级、高性能的桌面应用
 - 🔥 Vue 3 + TypeScript，提供类型安全和现代化的开发体验
 - 📦 Vite 构建，快速的开发环境和构建过程
-- 🎨 Element Plus 组件库，美观的 UI 设计
 - 🔄 Alova 请求库，优雅的数据请求处理
 - 📊 Pinia 状态管理，简单而强大
 - 🛠 完整的开发工具链配置（ESLint, Prettier）

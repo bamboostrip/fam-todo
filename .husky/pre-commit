@@ -1,3 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"  # 第二行：路径拼接可能引发问题
 npx --no-install -- lint-staged

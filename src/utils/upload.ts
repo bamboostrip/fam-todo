@@ -1,7 +1,6 @@
 // src/utils/upload.ts
 import { createAlova } from 'alova'
 import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig'
-import { ElMessage } from 'element-plus'
 
 // 假设上传成功后，服务器返回这样的JSON结构
 export interface UploadSuccessResponse {
@@ -40,7 +39,7 @@ export const uploadClient = createAlova({
           errorData?.msg ||
           response.statusText ||
           `上传HTTP错误 ${response.status}`
-        if (!method.config.meta?.hideErrorToast) ElMessage.error(errorMessage)
+        if (!method.config.meta?.hideErrorToast) alert(errorMessage)
         throw new Error(errorMessage)
       }
 
@@ -50,7 +49,7 @@ export const uploadClient = createAlova({
         return responseBody // 可以返回整个成功对象，或仅返回 responseBody.url
       } else {
         const errorMsg = responseBody.message || '文件上传失败'
-        if (!method.config.meta?.hideErrorToast) ElMessage.error(errorMsg)
+        if (!method.config.meta?.hideErrorToast) alert(errorMsg)
         throw new Error(errorMsg)
       }
     },
@@ -71,7 +70,7 @@ export function createValidatedUploadMethod(
 ) {
   if (options?.maxSizeMB && file.size > options.maxSizeMB * 1024 * 1024) {
     const errorMsg = `文件大小不能超过 ${options.maxSizeMB}MB`
-    ElMessage.error(errorMsg)
+    alert(errorMsg)
     // 返回一个立即 reject 的 Promise 或抛出错误，让 useRequest 捕获
     return Promise.reject(new Error(errorMsg)) // 或者你可以设计一种方式让 useRequest 处理这种预检失败
   }

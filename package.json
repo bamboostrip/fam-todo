@@ -13,16 +13,20 @@
     "lint:check": "eslint --ext .ts,.vue,.js src"
   },
   "lint-staged": {
-    "**/*.{vue,ts,tsx,js,jsx,cjs,json,md}": [
-      "eslint --fix",
+    "**/*.{html,vue,ts,cjs,json,md}": [
       "prettier --write"
+    ],
+    "**/*.{vue,js,ts,jsx,tsx}": [
+      "eslint --cache --fix"
+    ],
+    "**/*.{vue,css,scss,html}": [
+      "stylelint --fix"
     ]
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "alova": "^3.2.13",
-    "element-plus": "^2.9.11",
     "pinia": "2.0.36",
     "pinia-plugin-persistedstate": "3.2.1",
     "unplugin-vue-router": "^0.12.0",
@@ -36,8 +40,6 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "dayjs": "^1.11.13",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",
@@ -45,9 +47,18 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^5.1.0",
     "eslint-plugin-vue": "^9.19.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
     "prettier": "^3.5.3",
     "rollup-plugin-visualizer": "^6.0.1",
     "sass": "1.77.8",
+    "stylelint": "^16.11.0",
+    "stylelint-config-html": "^1.1.0",
+    "stylelint-config-recess-order": "^4.6.0",
+    "stylelint-config-recommended": "^14.0.1",
+    "stylelint-config-recommended-scss": "^14.1.0",
+    "stylelint-config-recommended-vue": "^1.5.0",
+    "stylelint-prettier": "^5.0.2",
     "typescript": "^5.7.2",
     "unplugin-auto-import": "^19.3.0",
     "unplugin-vue-components": "^28.7.0",

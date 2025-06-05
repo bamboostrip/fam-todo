@@ -33,7 +33,6 @@
 import { ref } from 'vue'
 import { useRequest } from 'alova/client'
 import { getFooList, getSingleFoo } from '@/service/index/foo' // 2. 导入你的 API Method
-import { ElMessage } from 'element-plus'
 // import { definePage } from 'unplugin-vue-router/runtime'
 
 definePage({
@@ -75,7 +74,7 @@ const {
 
 const handleFetchItemById = async () => {
   if (!itemName.value) {
-    ElMessage.error('请输入 name')
+    alert('请输入 name')
     return
   }
   // 调用 runGetFooItemById 时传入参数，这个参数会传给 useRequest 的第一个参数 (函数)

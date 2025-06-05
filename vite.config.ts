@@ -7,7 +7,6 @@ import VueRouter from 'unplugin-vue-router/vite' // 1. 导入插件
 // Vite 插件
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import ViteRestart from 'vite-plugin-restart'
 import { visualizer } from 'rollup-plugin-visualizer'
 
@@ -58,7 +57,7 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
           'unplugin-vue-router/runtime': ['definePage'], // 显式添加
         },
       ],
-      resolvers: [ElementPlusResolver()],
+      resolvers: [],
       dts: 'src/types/auto-imports.d.ts',
       eslintrc: {
         enabled: true,
@@ -67,7 +66,7 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
       },
     }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [],
       dts: 'src/types/components.d.ts',
     }),
     ViteRestart({
