@@ -27,12 +27,26 @@
       <pre>{{ fooItemData.id }}</pre>
     </div>
   </div>
+  <Button
+    variant="outline"
+    @click="
+      () => {
+        toast.success('已添加到日历', {
+          description: '这是一个成功的提示',
+        })
+      }
+    "
+  >
+    添加到日历
+  </Button>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRequest } from 'alova/client'
 import { getFooList, getSingleFoo } from '@/service/index/foo' // 2. 导入你的 API Method
+import { Button } from '@/components/ui/button'
+import { toast } from 'vue-sonner'
 // import { definePage } from 'unplugin-vue-router/runtime'
 
 definePage({
@@ -74,7 +88,7 @@ const {
 
 const handleFetchItemById = async () => {
   if (!itemName.value) {
-    alert('请输入 name')
+    toast.error('请输入 name')
     return
   }
   // 调用 runGetFooItemById 时传入参数，这个参数会传给 useRequest 的第一个参数 (函数)

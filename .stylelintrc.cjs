@@ -26,11 +26,10 @@ module.exports = {
   // 自定义规则
   rules: {
     'prettier/prettier': true,
-    // 允许 global 、export 、v-deep等伪类
     'selector-pseudo-class-no-unknown': [
       true,
       {
-        ignorePseudoClasses: ['global', 'export', 'v-deep', 'deep'],
+        ignorePseudoClasses: ['global', 'export', 'v-deep', 'deep', 'theme'], // 'theme' 作为伪类被忽略似乎不寻常，确认是否需要
       },
     ],
     'unit-no-unknown': [
@@ -39,19 +38,49 @@ module.exports = {
         ignoreUnits: ['rpx'],
       },
     ],
-    // 处理小程序page标签不认识的问题
     'selector-type-no-unknown': [
       true,
       {
         ignoreTypes: ['page'],
       },
     ],
-    'comment-empty-line-before': 'never', // never|always|always-multi-line|never-multi-line
+    // 为普通 CSS 文件配置（如果它们不通过 postcss-scss 解析的话，或者作为备用）
+    'at-rule-no-unknown': [
+      true,
+      {
+        ignoreAtRules: [
+          'tailwind',
+          'apply',
+          'layer',
+          'config',
+          'theme', // <--- 针对 Tailwind v4 / Shadcn Vue v4
+          'custom-variant', // <--- 针对 Tailwind v4 / Shadcn Vue v4
+          // 如果还有其他自定义的 @ 规则，也加在这里
+        ],
+      },
+    ],
+    // **关键：为 SCSS 文件或通过 postcss-scss 解析的文件配置**
+    'scss/at-rule-no-unknown': [
+      // <--- 添加这个规则配置
+      true,
+      {
+        ignoreAtRules: [
+          'tailwind',
+          'apply',
+          'layer',
+          'config',
+          'theme', // <--- 针对 Tailwind v4 / Shadcn Vue v4
+          'custom-variant', // <--- 针对 Tailwind v4 / Shadcn Vue v4
+          // 如果还有其他自定义的 @ 规则，也加在这里
+        ],
+      },
+    ],
+    'comment-empty-line-before': 'never',
     'custom-property-empty-line-before': 'never',
     'no-empty-source': null,
     'comment-no-empty': null,
     'no-duplicate-selectors': null,
-    'scss/comment-no-empty': null,
+    'scss/comment-no-empty': null, // 如果你希望允许空的 SCSS 注释
     'selector-class-pattern': null,
     'font-family-no-missing-generic-family-keyword': null,
   },

@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import path from 'node:path' // 导入 path 模块，需要 @types/node
 import dayjs from 'dayjs'
 import VueRouter from 'unplugin-vue-router/vite' // 1. 导入插件
+import tailwindcss from '@tailwindcss/vite' // Tailwind CSS Vite 插件
 
 // Vite 插件
 import AutoImport from 'unplugin-auto-import/vite'
@@ -49,6 +50,7 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
       // routeBlockLang: 'json5', // <route>块的语言，默认 'json5'
     }),
     vue(),
+    tailwindcss(),
     AutoImport({
       imports: [
         'vue',

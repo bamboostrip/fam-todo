@@ -2,6 +2,7 @@
 import { createAlova } from 'alova'
 import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig' // 导入共享配置
 import { useUserStore } from '@/store/user'
+import { toast } from 'vue-sonner'
 
 export const apiClient = createAlova({
   cacheFor: null,
@@ -38,7 +39,7 @@ export const apiClient = createAlova({
           errorData = await response.json()
         } catch (e) {}
         const errorMessage = errorData?.msg || response.statusText || `HTTP 错误 ${response.status}`
-        if (!method.config.meta?.hideErrorToast) alert(errorMessage)
+        if (!method.config.meta?.hideErrorToast) toast.error(errorMessage)
         throw new Error(errorMessage)
       }
 
@@ -50,12 +51,12 @@ export const apiClient = createAlova({
             return responseBody.data // 提取核心数据
           } else if (responseBody.code === 401) {
             const errorMsg = responseBody.msg || '登录已过期或无权限'
-            if (!method.config.meta?.hideErrorToast) alert(errorMsg)
+            if (!method.config.meta?.hideErrorToast) toast.error(errorMsg)
             // TODO: 执行登出或跳转到登录页
             throw new Error(errorMsg)
           } else {
             const errorMsg = responseBody.msg || `业务错误: ${responseBody.code}`
-            if (!method.config.meta?.hideErrorToast) alert(errorMsg)
+            if (!method.config.meta?.hideErrorToast) toast.error(errorMsg)
             throw new Error(errorMsg)
           }
         }

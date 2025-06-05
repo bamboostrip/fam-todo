@@ -1,6 +1,7 @@
 // src/utils/download.ts
 import { createAlova } from 'alova'
 import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig'
+import { toast } from 'vue-sonner'
 
 export const downloadClient = createAlova({
   ...baseAlovaConfig,
@@ -21,7 +22,7 @@ export const downloadClient = createAlova({
         // 下载失败时，错误信息可能不是JSON，尝试读取文本
         const errorText = await response.text()
         const errorMessage = errorText || response.statusText || `下载HTTP错误 ${response.status}`
-        if (!method.config.meta?.hideErrorToast) alert(errorMessage)
+        if (!method.config.meta?.hideErrorToast) toast.error(errorMessage)
         throw new Error(errorMessage)
       }
       // 下载成功，直接返回 Blob 对象
