@@ -2,7 +2,7 @@
 {
   name: 'home',
   meta: {
-    requiresAuth: false,
+    requiresAuth: true,
   },
   layout: 'other',
 }

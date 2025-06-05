@@ -1,6 +1,7 @@
 // src/utils/upload.ts
 import { createAlova } from 'alova'
 import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig'
+import { useUserStore } from '@/store/user'
 import { toast } from 'vue-sonner'
 
 // 假设上传成功后，服务器返回这样的JSON结构
@@ -11,14 +12,14 @@ export interface UploadSuccessResponse {
   // ... 其他可能的字段
 }
 
-export const uploadClient = createAlova({
+export const upload = createAlova({
   ...baseAlovaConfig,
   baseURL: import.meta.env.VITE_UPLOAD_BASEURL, // 文件上传服务的 baseURL
-
   beforeRequest: (method) => {
     // 上传服务可能也需要 Token
-    const token = localStorage.getItem('authToken') // 或者特定的上传Token
-    if (token) {
+    const userStore = useUserStore()
+    if (userStore.isLogined) {
+      const token = userStore.userInfo.token
       method.config.headers = { ...method.config.headers, Authorization: `Bearer ${token}` }
     }
     // 对于 FormData，不需要手动设置 Content-Type，浏览器/fetch 会自动处理
@@ -83,5 +84,5 @@ export function createValidatedUploadMethod(
       formData.append(key, options.additionalData[key])
     }
   }
-  return uploadClient.Post<UploadSuccessResponse>(uploadPath, formData)
+  return upload.Post<UploadSuccessResponse>(uploadPath, formData)
 }

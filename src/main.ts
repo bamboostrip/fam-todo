@@ -8,6 +8,8 @@ import '@/style/index.css'
 
 // 导入路由守卫设置函数
 import { setupRouterGuards } from './router'
+// 导入主题store
+import { useThemeStore } from './store/theme'
 
 const routes = setupLayouts(generatedRoutes)
 
@@ -22,4 +24,10 @@ setupRouterGuards(router) // <--- 在这里调用
 const app = createApp(App)
 app.use(router)
 app.use(store)
+
+// 在应用挂载后初始化主题
 app.mount('#app')
+
+// 初始化主题系统
+const themeStore = useThemeStore()
+themeStore.initTheme()

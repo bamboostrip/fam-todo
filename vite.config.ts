@@ -53,7 +53,19 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
     }),
     tailwindcss(),
     AutoImport({
-      imports: ['vue', 'vue-router'],
+      imports: [
+        'vue',
+        'vue-router',
+        {
+          'alova/client': [
+            // 指定从 'alova/client' 导入
+            'useRequest',
+            // 如果还有其他 alova 的函数需要自动导入，也可以在这里添加
+            // 'useWatcher',
+            // 'useFetcher',
+          ],
+        },
+      ],
       resolvers: [],
       dts: 'src/types/auto-imports.d.ts',
       eslintrc: {

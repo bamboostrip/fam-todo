@@ -4,15 +4,15 @@ import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig' // 导
 import { useUserStore } from '@/store/user'
 import { toast } from 'vue-sonner'
 
-export const apiClient = createAlova({
+export const http = createAlova({
   cacheFor: null,
   ...baseAlovaConfig, // 应用共享的基础配置
   baseURL: import.meta.env.VITE_SERVER_BASEURL || '/api', // 常规 API 的 baseURL
-
   beforeRequest: (method) => {
     // 通用 Token 添加逻辑
-    const token = localStorage.getItem('authToken')
-    if (useUserStore().isLogined) {
+    const userStore = useUserStore()
+    if (userStore.isLogined) {
+      const token = userStore.userInfo.token
       method.config.headers = { ...method.config.headers, Authorization: `Bearer ${token}` }
     }
     // 为普通对象数据设置 Content-Type (如果不是 FormData)

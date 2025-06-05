@@ -1,14 +1,14 @@
-import { apiClient } from '@/utils/http'
+import { http } from '@/utils/http'
 import { createValidatedUploadMethod } from '@/utils/upload' // 使用带校验的辅助函数
-import { downloadClient } from '@/utils/download'
+import { download } from '@/utils/download'
 
 export interface IFooItem {
   id: string
   name: string
 }
 
-export const getFooList = () => apiClient.Get<IFooItem>('/foo')
-export const getSingleFoo = (name: string) => apiClient.Post<IFooItem>(`/foo`, { name })
+export const getFooList = () => http.Get<IFooItem>('/foo')
+export const getSingleFoo = (name: string) => http.Post<IFooItem>(`/foo`, { name })
 
 export const uploadDocument = (file: File, description: string) => {
   return createValidatedUploadMethod(
@@ -22,5 +22,5 @@ export const uploadDocument = (file: File, description: string) => {
 }
 
 export const downloadAttachment = (attachmentId: string) => {
-  return downloadClient.Get<Blob>(`/attachments/${attachmentId}`) // 期望返回 Blob
+  return download.Get<Blob>(`/attachments/${attachmentId}`) // 期望返回 Blob
 }

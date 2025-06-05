@@ -1,16 +1,17 @@
 // src/utils/download.ts
 import { createAlova } from 'alova'
 import { baseAlovaConfig, commonOnErrorHandler } from './alovaBaseConfig'
+import { useUserStore } from '@/store/user'
 import { toast } from 'vue-sonner'
 
-export const downloadClient = createAlova({
+export const download = createAlova({
   ...baseAlovaConfig,
   baseURL: import.meta.env.VITE_DOWNLOAD_BASEURL, // 文件下载服务的 baseURL
-
   beforeRequest: (method) => {
     // 下载服务可能也需要 Token
-    const token = localStorage.getItem('authToken')
-    if (token) {
+    const userStore = useUserStore()
+    if (userStore.isLogined) {
+      const token = userStore.userInfo.token
       method.config.headers = { ...method.config.headers, Authorization: `Bearer ${token}` }
     }
     console.log(`[Download Request] ${method.type.toUpperCase()} ${method.url}`, method.config)

@@ -69,6 +69,7 @@
     "useId": true,
     "useLink": true,
     "useModel": true,
+    "useRequest": true,
     "useRoute": true,
     "useRouter": true,
     "useSlots": true,
