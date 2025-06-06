@@ -23,19 +23,7 @@
         <div
           class="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg"
         >
-          <svg
-            class="w-6 h-6 sm:w-8 sm:h-8 text-primary-foreground"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
+          <CheckCircle :size="24" class="sm:w-8 sm:h-8 text-primary-foreground" :stroke-width="2" />
         </div>
         <h1 class="text-2xl sm:text-3xl font-bold text-foreground">Fam-TODO</h1>
         <p class="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
@@ -51,19 +39,7 @@
             <label for="username" class="text-sm font-medium text-foreground">用户名</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  ></path>
-                </svg>
+                <User :size="16" class="sm:w-5 sm:h-5 text-muted-foreground" :stroke-width="2" />
               </div>
               <Input
                 id="username"
@@ -84,19 +60,11 @@
             <label for="password" class="text-sm font-medium text-foreground">密码</label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg
-                  class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  ></path>
-                </svg>
+                <LockKeyhole
+                  :size="16"
+                  class="sm:w-5 sm:h-5 text-muted-foreground"
+                  :stroke-width="2"
+                />
               </div>
               <Input
                 id="password"
@@ -113,46 +81,18 @@
                 class="absolute inset-y-0 right-0 pr-3 flex items-center"
                 @click="showPassword = !showPassword"
               >
-                <svg
+                <Eye
                   v-if="!showPassword"
-                  class="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground hover:text-foreground transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  ></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  ></path>
-                </svg>
-                <svg
+                  :size="16"
+                  class="sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors"
+                  :stroke-width="2"
+                />
+                <EyeOff
                   v-else
-                  class="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.05 6.05M9.878 9.878a3 3 0 00-.007 4.243m4.242-4.242L15.95 7.95M13.121 13.121a3 3 0 01-4.243 4.243"
-                  ></path>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  ></path>
-                </svg>
+                  :size="16"
+                  class="sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors"
+                  :stroke-width="2"
+                />
               </button>
             </div>
             <p v-if="formErrors.password" class="text-sm text-destructive">
@@ -176,21 +116,7 @@
         >
           <span v-if="!loading">登录</span>
           <span v-else class="flex items-center">
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-              <circle
-                class="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-              ></circle>
-              <path
-                class="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <Loader2 :size="16" class="animate-spin -ml-1 mr-2" :stroke-width="2" />
             登录中...
           </span>
         </Button>
@@ -216,14 +142,7 @@
         <!-- 其他登录选项 -->
         <div class="space-y-3">
           <Button variant="outline" class="w-full h-11" @click="handleGuestLogin">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              ></path>
-            </svg>
+            <UserPlus :size="16" class="mr-2" :stroke-width="2" />
             游客体验
           </Button>
         </div>
@@ -261,6 +180,7 @@ import { Label } from '@/components/ui/label'
 import { validateUsername, validatePassword } from '@/utils/validation'
 import { useUserStore } from '@/store/user'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import { Eye, EyeOff, LockKeyhole, User, CheckCircle, Loader2, UserPlus } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
