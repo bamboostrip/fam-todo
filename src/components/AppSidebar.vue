@@ -1,20 +1,35 @@
 <script setup lang="ts">
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
-} from '@/components/ui/sidebar'
+import { Sidebar, SidebarContent } from '@/components/ui/sidebar'
+import UserAvatar from './UserAvatar.vue'
+import FixedLists from './FixedLists.vue'
+import CustomLists from './CustomLists.vue'
+import GroupsWithLists from './GroupsWithLists.vue'
+import CreateActions from './CreateActions.vue'
 </script>
 
 <template>
-  <Sidebar>
-    <SidebarHeader />
-    <SidebarContent>
-      <SidebarGroup />
-      <SidebarGroup />
+  <Sidebar class="w-60">
+    <SidebarContent class="flex flex-col h-full">
+      <!-- 用户信息区域 -->
+      <UserAvatar />
+
+      <!-- 固定菜单 -->
+      <FixedLists />
+
+      <!-- 分隔线 -->
+      <div class="border-t mx-4 my-2"></div>
+
+      <!-- 自定义列表区域 -->
+      <div class="flex-1 overflow-y-auto">
+        <!-- 没有组的自定义列表 -->
+        <CustomLists />
+
+        <!-- 组和组内列表 -->
+        <GroupsWithLists />
+      </div>
+
+      <!-- 底部操作按钮 -->
+      <CreateActions />
     </SidebarContent>
-    <SidebarFooter />
   </Sidebar>
 </template>
