@@ -16,3 +16,4 @@ export default store
 export * from './user'
 export * from './theme'
 export * from './lists'
+export * from './loading'

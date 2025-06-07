@@ -9,9 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useUserStore } from '@/store/user'
+import { useLoadingStore } from '@/store/loading'
 import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
+const loadingStore = useLoadingStore()
 const router = useRouter()
 
 // 用户头像
@@ -40,8 +42,8 @@ const handleUserAction = (action: string) => {
       router.push('/login')
       break
     case 'sync':
-      // TODO: 实现同步功能
-      console.log('同步数据')
+      // 调用同步功能
+      loadingStore.startSync()
       break
   }
 }
@@ -66,9 +68,9 @@ const handleUserAction = (action: string) => {
         <Settings class="w-4 h-4 mr-2" />
         <span>设置</span>
       </DropdownMenuItem>
-      <DropdownMenuItem @click="handleUserAction('sync')">
-        <RefreshCw class="w-4 h-4 mr-2" />
-        <span>同步</span>
+      <DropdownMenuItem @click="handleUserAction('sync')" :disabled="loadingStore.isLoading">
+        <RefreshCw class="w-4 h-4 mr-2" :class="{ 'animate-spin': loadingStore.isLoading }" />
+        <span>{{ loadingStore.isLoading ? '同步中...' : '同步' }}</span>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem
