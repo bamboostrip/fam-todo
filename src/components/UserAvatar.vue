@@ -24,6 +24,11 @@ const userName = computed(() => {
   return userStore.userInfo.username || '用户'
 })
 
+// 昵称
+const nickName = computed(() => {
+  return userStore.userInfo.nickname || '昵称'
+})
+
 // 用户操作菜单
 const handleUserAction = (action: string) => {
   switch (action) {
@@ -49,8 +54,8 @@ const handleUserAction = (action: string) => {
         <div class="flex items-center gap-3">
           <img :src="userAvatar" :alt="userName" class="w-10 h-10 rounded-full object-cover" />
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium truncate">{{ userName }}</p>
-            <p class="text-xs text-muted-foreground truncate">bamoostrip@outlook.com</p>
+            <p class="text-sm font-medium truncate">{{ nickName }}</p>
+            <p class="text-xs text-muted-foreground truncate">{{ userName }}</p>
           </div>
           <MoreHorizontal class="w-4 h-4 opacity-50" />
         </div>

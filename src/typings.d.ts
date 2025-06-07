@@ -10,6 +10,7 @@ declare global {
     username?: string
     avatar?: string
     token?: string
+    nikeName?: string
   }
 }
 
