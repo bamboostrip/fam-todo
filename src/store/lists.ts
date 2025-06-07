@@ -59,7 +59,7 @@ export const useListsStore = defineStore(
       {
         id: 'my-day',
         name: '我的一天',
-        route: '/my-day',
+        route: '/',
         count: 0,
         order: 0,
         icon: 'Sun',

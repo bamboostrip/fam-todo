@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Sidebar, SidebarContent } from '@/components/ui/sidebar'
 import UserAvatar from './UserAvatar.vue'
+import SearchArea from './SearchArea.vue'
 import FixedLists from './FixedLists.vue'
 import CustomLists from './CustomLists.vue'
 import GroupsWithLists from './GroupsWithLists.vue'
@@ -12,6 +13,9 @@ import CreateActions from './CreateActions.vue'
     <SidebarContent class="flex flex-col h-full">
       <!-- 用户信息区域 -->
       <UserAvatar />
+
+      <!-- 搜索区域 -->
+      <SearchArea />
 
       <!-- 固定菜单 -->
       <FixedLists />
