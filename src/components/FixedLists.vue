@@ -15,10 +15,11 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
 import { useListsStore } from '@/store/lists'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const listsStore = useListsStore()
 const router = useRouter()
+const route = useRoute()
 
 // 固定菜单图标映射
 const menuIcons = {
@@ -34,6 +35,11 @@ const menuIcons = {
 const fixedLists = computed(() => {
   return listsStore.intelligentLists.filter((list) => !list.isHidden) // 使用 listsStore.intelligentLists
 })
+
+// 检查当前路由是否匹配列表
+const isListActive = (list: any) => {
+  return route.path === list.route
+}
 
 // 导航到列表
 const navigateToList = (list: any) => {
@@ -52,13 +58,20 @@ const toggleListHidden = (listId: string) => {
   <SidebarGroup class="px-4 py-2">
     <SidebarGroupContent>
       <SidebarMenu>
-        <SidebarMenuItem v-for="list in fixedLists" :key="list.id" class="mb-1">
+        <SidebarMenuItem v-for="list in fixedLists" :key="list.id" class="mb-1 relative">
           <ContextMenu>
             <ContextMenuTrigger as-child>
               <SidebarMenuButton
+                :isActive="isListActive(list)"
                 @click="navigateToList(list)"
-                class="w-full justify-between hover:bg-accent"
+                class="w-full justify-between hover:bg-accent relative"
               >
+                <!-- 左侧蓝色指示器 -->
+                <div
+                  v-if="isListActive(list)"
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
+                ></div>
+
                 <div class="flex items-center gap-3">
                   <component :is="menuIcons[list.id as keyof typeof menuIcons]" class="w-4 h-4" />
                   <span>{{ list.name }}</span>

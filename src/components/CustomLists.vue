@@ -16,27 +16,54 @@ import {
 import { Input } from '@/components/ui/input'
 import IconSelector from '@/components/IconSelector.vue'
 import { useListsStore } from '@/store/lists'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { CircleX } from 'lucide-vue-next'
 
 const listsStore = useListsStore()
 const router = useRouter()
+const route = useRoute()
 
 // 编辑状态
 const editingItem = ref<{ type: 'list'; id: string } | null>(null)
 const editingName = ref('')
 const editingIcon = ref('')
 
-// 自定义列表（不在组内）
+// 自定义列表
 const customListsWithoutGroup = computed(() => {
-  return listsStore.customLists.filter((list) => !list.groupId) // 使用 listsStore.customLists
+  return listsStore.customLists // 直接返回所有自定义列表
 })
+
+// 检查当前路由是否匹配列表
+const isListActive = (list: any) => {
+  // 如果列表有特定的路由路径，直接比较路径
+  if (list.route && list.route.startsWith('/custom-list/')) {
+    return route.path === list.route
+  }
+
+  // 如果是基于查询参数的路由（例如 /list?id=xxx），比较查询参数
+  if (route.path === '/list' && route.query.id === list.id) {
+    return true
+  }
+
+  return false
+}
 
 // 导航到列表
 const navigateToList = (list: any) => {
   if (list.route) {
-    router.push(list.route)
+    // 如果是查询参数路由，解析并跳转
+    if (list.route.includes('?id=')) {
+      const [path, query] = list.route.split('?')
+      const params = new URLSearchParams(query)
+      router.push({
+        path,
+        query: { id: params.get('id') },
+      })
+    } else {
+      // 直接路径跳转
+      router.push(list.route)
+    }
   }
 }
 
@@ -124,9 +151,16 @@ const handleKeydown = (event: KeyboardEvent) => {
             <ContextMenuTrigger asChild>
               <SidebarMenuButton
                 as="div"
+                :isActive="isListActive(list)"
                 @click="navigateToList(list)"
-                class="w-full justify-between hover:bg-accent cursor-pointer"
+                class="w-full justify-between hover:bg-accent cursor-pointer relative"
               >
+                <!-- 左侧蓝色指示器 -->
+                <div
+                  v-if="isListActive(list)"
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
+                ></div>
+
                 <div class="flex items-center gap-3">
                   <IconSelector
                     :current-icon="list.icon || 'ListTodo'"

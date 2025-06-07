@@ -4,7 +4,6 @@ import UserAvatar from './UserAvatar.vue'
 import SearchArea from './SearchArea.vue'
 import FixedLists from './FixedLists.vue'
 import CustomLists from './CustomLists.vue'
-import GroupsWithLists from './GroupsWithLists.vue'
 import CreateActions from './CreateActions.vue'
 </script>
 
@@ -22,14 +21,10 @@ import CreateActions from './CreateActions.vue'
 
       <!-- 分隔线 -->
       <div class="border-t mx-4 my-2"></div>
-
       <!-- 自定义列表区域 -->
       <div class="flex-1 overflow-y-auto">
         <!-- 没有组的自定义列表 -->
         <CustomLists />
-
-        <!-- 组和组内列表 -->
-        <GroupsWithLists />
       </div>
 
       <!-- 底部操作按钮 -->
