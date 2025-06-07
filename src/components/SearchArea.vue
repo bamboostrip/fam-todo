@@ -1,14 +1,30 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Search } from 'lucide-vue-next'
+import { Search, X } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const searchQuery = ref('')
+
+// 记录进入搜索前的页面路径
+let previousNonSearchPath = '/'
+
+// 监听路由变化，记录非搜索页面的路径
+watch(
+  () => route.path,
+  (newPath) => {
+    if (newPath !== '/search') {
+      previousNonSearchPath = newPath
+    }
+  },
+  { immediate: true },
+)
 
 // 监听搜索内容变化
 watch(searchQuery, (newValue, oldValue) => {
+  console.log('newValue: ', newValue)
   if (newValue.trim()) {
     // 有内容时跳转到搜索页面
     router.push({
@@ -18,14 +34,15 @@ watch(searchQuery, (newValue, oldValue) => {
       },
     })
   } else if (oldValue && !newValue.trim()) {
-    // 从有内容变为空时，跳转回上一个页面
-    router.back()
+    // 从有内容变为空时，回到之前记录的非搜索页面
+    router.push(previousNonSearchPath)
   }
 })
 
 // 清空搜索框
 const clearSearch = () => {
   searchQuery.value = ''
+  console.log('searchQuery.value: ', searchQuery.value)
 }
 </script>
 
@@ -49,20 +66,7 @@ const clearSearch = () => {
         class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"
         aria-label="清空搜索"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+        <X class="w-4 h-4" />
       </button>
     </div>
   </div>
