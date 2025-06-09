@@ -10,42 +10,40 @@
 
 <template>
   <div
-    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-2 sm:p-4 relative"
+    class="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-1.5 sm:p-3 relative"
   >
     <!-- 主题切换按钮 -->
-    <div class="absolute top-4 right-4 z-10">
-      <ThemeToggle size="icon" variant="ghost" />
+    <div class="absolute top-3 right-3 z-10">
+      <ThemeToggle size="icon" variant="ghost" class="w-8 h-8" />
     </div>
 
-    <div class="w-full max-w-sm sm:max-w-md">
+    <div class="w-full max-w-xs sm:max-w-sm">
       <!-- Logo 和标题 -->
-      <div class="text-center mb-6 sm:mb-8">
+      <div class="text-center mb-4 sm:mb-6">
         <div
-          class="mx-auto w-12 h-12 sm:w-16 sm:h-16 bg-primary rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg"
+          class="mx-auto w-10 h-10 sm:w-14 sm:h-14 bg-primary rounded-xl flex items-center justify-center mb-2 sm:mb-3 shadow-lg"
         >
-          <CheckCircle :size="24" class="sm:w-8 sm:h-8 text-primary-foreground" :stroke-width="2" />
+          <CheckCircle :size="20" class="sm:w-7 sm:h-7 text-primary-foreground" :stroke-width="2" />
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-foreground">Fam-TODO</h1>
-        <p class="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-          欢迎回来！请登录您的账户
-        </p>
+        <h1 class="text-xl sm:text-2xl font-bold text-foreground">Fam-TODO</h1>
+        <p class="text-muted-foreground mt-1 text-xs sm:text-sm">欢迎回来！请登录您的账户</p>
       </div>
 
       <!-- 登录表单 -->
-      <div class="bg-card rounded-2xl shadow-xl border p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
-        <div class="space-y-3 sm:space-y-4">
+      <div class="bg-card rounded-xl shadow-lg border p-3 sm:p-5 space-y-3 sm:space-y-4">
+        <div class="space-y-2 sm:space-y-3">
           <!-- 用户名输入框 -->
-          <div class="space-y-2">
-            <label for="username" class="text-sm font-medium text-foreground">用户名</label>
+          <div class="space-y-1.5">
+            <label for="username" class="text-xs font-medium text-foreground">用户名</label>
             <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User :size="16" class="sm:w-5 sm:h-5 text-muted-foreground" :stroke-width="2" />
+              <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                <User :size="14" class="sm:w-4 sm:h-4 text-muted-foreground" :stroke-width="2" />
               </div>
               <Input
                 id="username"
                 v-model="loginForm.username"
                 placeholder="请输入用户名"
-                class="pl-9 sm:pl-10 h-10 sm:h-11 text-sm sm:text-base"
+                class="pl-8 sm:pl-9 h-9 sm:h-10 text-xs sm:text-sm"
                 :class="{ 'border-destructive': formErrors.username }"
                 @input="clearFieldError('username')"
               />
@@ -56,13 +54,13 @@
           </div>
 
           <!-- 密码输入框 -->
-          <div class="space-y-2">
-            <label for="password" class="text-sm font-medium text-foreground">密码</label>
+          <div class="space-y-1.5">
+            <label for="password" class="text-xs font-medium text-foreground">密码</label>
             <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
                 <LockKeyhole
-                  :size="16"
-                  class="sm:w-5 sm:h-5 text-muted-foreground"
+                  :size="14"
+                  class="sm:w-4 sm:h-4 text-muted-foreground"
                   :stroke-width="2"
                 />
               </div>
@@ -71,26 +69,26 @@
                 v-model="loginForm.password"
                 :type="showPassword ? 'text' : 'password'"
                 placeholder="请输入密码"
-                class="pl-9 sm:pl-10 pr-9 sm:pr-10 h-10 sm:h-11 text-sm sm:text-base"
+                class="pl-8 sm:pl-9 pr-8 sm:pr-9 h-9 sm:h-10 text-xs sm:text-sm"
                 :class="{ 'border-destructive': formErrors.password }"
                 @input="clearFieldError('password')"
                 @keyup.enter="handleLogin"
               />
               <button
                 type="button"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+                class="absolute inset-y-0 right-0 pr-2.5 flex items-center"
                 @click="showPassword = !showPassword"
               >
                 <Eye
                   v-if="!showPassword"
-                  :size="16"
-                  class="sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors"
+                  :size="14"
+                  class="sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors"
                   :stroke-width="2"
                 />
                 <EyeOff
                   v-else
-                  :size="16"
-                  class="sm:w-5 sm:h-5 text-muted-foreground hover:text-foreground transition-colors"
+                  :size="14"
+                  class="sm:w-4 sm:h-4 text-muted-foreground hover:text-foreground transition-colors"
                   :stroke-width="2"
                 />
               </button>
@@ -100,9 +98,9 @@
             </p>
           </div>
           <!-- 记住我选项 -->
-          <div class="flex items-center space-x-2">
+          <div class="flex items-center space-x-1.5">
             <Checkbox id="remember" v-model:checked="loginForm.remember" />
-            <Label for="remember" class="text-sm text-muted-foreground cursor-pointer">
+            <Label for="remember" class="text-xs text-muted-foreground cursor-pointer">
               记住我
             </Label>
           </div>
@@ -111,20 +109,20 @@
         <Button
           @click="handleLogin"
           :loading="loading"
-          class="w-full h-10 sm:h-11 text-sm sm:text-base font-medium"
+          class="w-full h-9 sm:h-10 text-xs sm:text-sm font-medium"
           :disabled="!isFormValid"
         >
           <span v-if="!loading">登录</span>
           <span v-else class="flex items-center">
-            <Loader2 :size="16" class="animate-spin -ml-1 mr-2" :stroke-width="2" />
+            <Loader2 :size="14" class="animate-spin -ml-1 mr-1.5" :stroke-width="2" />
             登录中...
           </span>
         </Button>
 
         <!-- 演示账户提示 -->
-        <div class="bg-muted/50 rounded-lg p-4 space-y-2">
-          <p class="text-sm font-medium text-foreground">演示账户：</p>
-          <div class="text-xs text-muted-foreground space-y-1">
+        <div class="bg-muted/50 rounded-md p-2.5 space-y-1.5">
+          <p class="text-xs font-medium text-foreground">演示账户：</p>
+          <div class="text-2xs text-muted-foreground space-y-0.5">
             <p>用户名: admin / user / demo</p>
             <p>密码: 123456</p>
           </div>
@@ -140,16 +138,16 @@
           </div>
         </div>
         <!-- 其他登录选项 -->
-        <div class="space-y-3">
-          <Button variant="outline" class="w-full h-11" @click="handleGuestLogin">
-            <UserPlus :size="16" class="mr-2" :stroke-width="2" />
+        <div class="space-y-2">
+          <Button variant="outline" class="w-full h-10" @click="handleGuestLogin">
+            <UserPlus :size="14" class="mr-1.5" :stroke-width="2" />
             游客体验
           </Button>
         </div>
 
         <!-- 没有账户 -->
         <div class="text-center">
-          <p class="text-sm text-muted-foreground">
+          <p class="text-xs text-muted-foreground">
             还没有账户？
             <button
               @click="goToRegister"
@@ -162,7 +160,7 @@
       </div>
 
       <!-- 页脚信息 -->
-      <div class="text-center mt-8 text-sm text-muted-foreground">
+      <div class="text-center mt-6 text-xs text-muted-foreground">
         <p>&copy; 2024 Fam-TODO. All rights reserved.</p>
       </div>
     </div>
@@ -307,7 +305,7 @@ const handleGuestLogin = async () => {
 
     // 设置游客信息
     const guestInfo: IUserInfo = {
-      nickname: '游客',
+      nikeName: '游客',
       username: 'guest',
       avatar: '',
       token: 'guest-token-' + Date.now(),
