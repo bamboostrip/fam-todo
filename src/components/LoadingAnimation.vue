@@ -48,7 +48,7 @@ export default {
   left: -10px;
   width: 2px;
   height: 2px;
-  background-color: #f5b6c2;
+  background-color: #ac395d;
   border-radius: 50%;
   transform: translateY(-50%);
   animation: dotMove 8s infinite ease-in-out;
