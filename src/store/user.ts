@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
-const initState = { userName: '', avatar: '', token: '', nikeName: '' }
+const initState = { userName: '', avatar: '', token: '', nickName: '' }
 
 export const useUserStore = defineStore(
   'user',
@@ -21,12 +21,18 @@ export const useUserStore = defineStore(
     }
     const isLogined = computed(() => !!userInfo.value.token)
 
+    // 设置用户头像
+    const setUserAvatar = (avatar: string) => {
+      userInfo.value.avatar = avatar
+    }
+
     return {
       userInfo,
       setUserInfo,
       clearUserInfo,
       isLogined,
       reset,
+      setUserAvatar,
     }
   },
   {

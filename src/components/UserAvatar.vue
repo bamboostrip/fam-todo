@@ -28,7 +28,7 @@ const userName = computed(() => {
 
 // 昵称
 const nickName = computed(() => {
-  return userStore.userInfo.nickname || '昵称'
+  return userStore.userInfo.nickName || '昵称'
 })
 
 // 用户操作菜单

@@ -45,6 +45,7 @@ export default defineConfig(async ({ command, mode }): Promise<UserConfig> => {
     Pages({
       dirs: 'src/pages', // 页面组件的目录
       // ... 其他 vite-plugin-pages 配置
+      exclude: ['**/components/*.vue'], // 排除 components 目录下的文件
     }),
     Layouts({
       layoutsDirs: 'src/layouts', // 布局组件的目录 (默认就是 'src/layouts')

@@ -305,7 +305,7 @@ const handleGuestLogin = async () => {
 
     // 设置游客信息
     const guestInfo: IUserInfo = {
-      nikeName: '游客',
+      nickName: '游客',
       username: 'guest',
       avatar: '',
       token: 'guest-token-' + Date.now(),
