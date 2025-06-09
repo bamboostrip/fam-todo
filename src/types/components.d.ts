@@ -52,6 +52,7 @@ declare module 'vue' {
     DropdownMenuSubTrigger: typeof import('./../components/ui/dropdown-menu/DropdownMenuSubTrigger.vue')['default']
     DropdownMenuTrigger: typeof import('./../components/ui/dropdown-menu/DropdownMenuTrigger.vue')['default']
     FixedLists: typeof import('./../components/FixedLists.vue')['default']
+    GroupsWithLists: typeof import('./../components/GroupsWithLists.vue')['default']
     HoverCard: typeof import('./../components/ui/hover-card/HoverCard.vue')['default']
     HoverCardContent: typeof import('./../components/ui/hover-card/HoverCardContent.vue')['default']
     HoverCardTrigger: typeof import('./../components/ui/hover-card/HoverCardTrigger.vue')['default']
