@@ -21,6 +21,9 @@
       <User />
       <!-- 主题切换 -->
       <SwitchTheme />
+      <!-- 智能列表设置 -->
+      <SmartLists />
+      <!-- 切换列表 -->
     </div>
   </div>
 </template>
@@ -30,6 +33,7 @@ import { useRouter } from 'vue-router'
 import { ArrowLeft } from 'lucide-vue-next'
 import User from './components/user.vue'
 import SwitchTheme from './components/switchTheme.vue'
+import SmartLists from './components/SmartLists.vue'
 
 const router = useRouter()
 function goBack() {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="tit mb-2">主题</div>
+    <div class="tit mb-2 mt-2">主题</div>
     <RadioGroup v-model="currentMode" class="space-y-2" @update:model-value="setTheme">
       <div v-for="option in themeOptions" :key="option.value" class="flex items-center space-x-2">
         <RadioGroupItem :value="option.value" :id="option.value" />
