@@ -10,7 +10,7 @@
 
 <template>
   <div class="settings-page flex flex-col h-full">
-    <div class="settings-header flex items-center py-4 px-6 bg-white border-b border-gray-200">
+    <div class="settings-header flex items-center py-4 px-6 border-b border-gray-200">
       <button class="back-btn mr-3 text-2xl" @click="goBack">
         <ArrowLeft />
       </button>
