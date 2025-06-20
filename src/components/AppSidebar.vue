@@ -8,7 +8,7 @@ import CreateActions from './CreateActions.vue'
 </script>
 
 <template>
-  <Sidebar class="w-60">
+  <Sidebar class="">
     <SidebarContent class="flex flex-col h-full">
       <!-- 用户信息区域 -->
       <UserAvatar />

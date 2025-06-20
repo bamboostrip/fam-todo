@@ -8,123 +8,128 @@
 }
 </route>
 <template>
-  <div>
-    <h2>常规数据列表 (自动加载)</h2>
-    <div v-if="fooListLoading">正在加载列表...</div>
-    <div v-else-if="fooListError">加载列表失败: {{ fooListError.message }}</div>
-    <ul v-else-if="fooListData">
-      <li>{{ fooListData.id }}</li>
-    </ul>
-    <div v-else>没有数据</div>
-    <button @click="handChange">刷新列表</button>
-
-    <hr />
-
-    <h2>根据 ID 获取数据 (手动触发)</h2>
-    <div>
-      <input v-model="itemName" placeholder="输入 Foo ID" />
-      <button @click="handleFetchItemById" :disabled="fooItemLoading">
-        {{ fooItemLoading ? '加载中...' : '获取详情' }}
-      </button>
-    </div>
-    <div v-if="fooItemLoading" style="margin-top: 10px">正在加载详情...</div>
-    <div v-else-if="fooItemError" style="margin-top: 10px">
-      加载详情失败: {{ fooItemError.message }}
-    </div>
-    <div v-else-if="fooItemData" style="margin-top: 10px">
-      <h3>获取到的详情:</h3>
-      <pre>{{ fooItemData.id }}</pre>
+  <div class="px-4 py-4 min-h-screen transition-all duration-300" :style="backgroundStyle">
+    <div class="header-top flex items-center justify-between mb-4 mt-5">
+      <div>
+        <div class="font-bold text-2xl">我的一天</div>
+        <div>{{ formattedDate }}</div>
+      </div>
+      <div>
+        <!-- 切换按钮 + Popover -->
+        <Popover>
+          <PopoverTrigger as-child>
+            <Button variant="outline">切换</Button>
+          </PopoverTrigger>
+          <PopoverContent class="w-64">
+            <div class="mb-2 font-semibold">选择背景</div>
+            <div class="flex gap-2 mb-2">
+              <div
+                v-for="color in colorOptions"
+                :key="color.value"
+                :style="{ background: color.value }"
+                class="w-8 h-8 rounded cursor-pointer border-2 flex-shrink-0"
+                :class="
+                  backgroundType === 'color' && backgroundValue === color.value
+                    ? 'border-blue-500'
+                    : 'border-transparent'
+                "
+                @click="setBackground('color', color.value)"
+              ></div>
+            </div>
+            <div class="flex gap-2">
+              <div
+                v-for="img in imageOptions"
+                :key="img"
+                class="w-12 h-8 rounded cursor-pointer border-2 bg-cover bg-center flex-shrink-0"
+                :style="{ backgroundImage: `url(${img})` }"
+                :class="
+                  backgroundType === 'image' && backgroundValue === img
+                    ? 'border-blue-500'
+                    : 'border-transparent'
+                "
+                @click="setBackground('image', img)"
+              ></div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     </div>
   </div>
-  <Button variant="outline" @click="goLogin">添加到日历</Button>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRequest } from 'alova/client'
-import { getFooList, getSingleFoo } from '@/service/index/foo' // 2. 导入你的 API Method
-import { Button } from '@/components/ui/button'
 import { toast } from 'vue-sonner'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { v4 as uuidv4 } from 'uuid'
+import { db } from '@/utils/db'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import Button from '@/components/ui/button/Button.vue'
 
-// 跳转到login
-const goLogin = () => {
-  router.push('/login')
+// 背景选项
+const colorOptions = [
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Black', value: '#18181b' },
+]
+const imageOptions = [
+  new URL('@/assets/bg/1.png', import.meta.url).href,
+  new URL('@/assets/bg/2.png', import.meta.url).href,
+  new URL('@/assets/bg/3.png', import.meta.url).href,
+]
+
+const backgroundType = ref<'color' | 'image'>('color')
+const backgroundValue = ref(colorOptions[0].value)
+
+const setBackground = (type: 'color' | 'image', value: string) => {
+  backgroundType.value = type
+  backgroundValue.value = value
 }
 
-// --- 示例1: 获取列表，组件挂载时自动执行 ---
-const {
-  loading: fooListLoading,
-  data: fooListData,
-  error: fooListError,
-  send: runGetFooList, // send 是执行函数，可以重命名为 run
-} = useRequest(
-  () => getFooList(), // 传入一个返回 Method 实例的函数
-  {
-    immediate: true, // 自动执行
-    initialData: { id: '123412341' }, // 可选：给 fooListData 设置一个初始值
-  },
-)
-
-// --- 示例2: 根据 ID 获取单项，手动触发 ---
-const itemName = ref('')
-const {
-  loading: fooItemLoading,
-  data: fooItemData,
-  error: fooItemError,
-  send: runGetFooItemById, // 这个 send 函数现在需要参数
-} = useRequest(
-  // 这个函数会在调用 runGetFooItemById(id) 时执行，并接收 id 参数
-  (name: string) => getSingleFoo(name),
-  {
-    immediate: false, // 不自动执行，等待手动调用 runGetFooItemById
-  },
-)
-
-const handleFetchItemById = async () => {
-  if (!itemName.value) {
-    toast.error('请输入 name')
-    return
+const backgroundStyle = computed(() => {
+  if (backgroundType.value === 'color') {
+    return { background: backgroundValue.value }
+  } else {
+    return {
+      background: `url(${backgroundValue.value}) center/cover no-repeat`,
+    }
   }
-  // 调用 runGetFooItemById 时传入参数，这个参数会传给 useRequest 的第一个参数 (函数)
-  // runGetFooItemById(itemId.value); // 这样也可以
-  // 如果你想在调用后做些事情，可以 await 它
-  const result = await runGetFooItemById(itemName.value)
-  if (result) {
-    console.log('手动获取成功:', result)
-  } else if (fooItemError.value) {
-    console.error('手动获取失败:', fooItemError.value.message)
+})
+
+// 当前时间 展示 X月XX日,星期X
+const currentDate = ref(new Date())
+const formattedDate = ref('')
+const formatDate = (date: Date) => {
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  }
+  return date.toLocaleDateString('zh-CN', options)
+}
+formattedDate.value = formatDate(currentDate.value)
+
+async function addNewTodo(title: string, listId: string) {
+  const newTodo = {
+    // 关键：在这里手动生成并提供 UUID
+    id: uuidv4(),
+    title,
+    listId,
+    isDone: false,
+    createdAt: new Date(),
+    completedAt: null,
+    isImportant: false,
+    myDay: null,
+    dueDate: null,
+    recurrenceRule: null,
+  }
+
+  try {
+    // 使用 add() 方法将新对象存入数据库
+    await db.todos.add(newTodo)
+    console.log(`Todo "${title}" added successfully!`)
+  } catch (error) {
+    console.error('Failed to add todo:', error)
   }
 }
-
-const handChange = () => {
-  runGetFooList()
-  console.log('fooListData:', fooListData.value)
-}
-
-// --- 同样的方式可以用于上传和下载 ---
-// 例如上传 (假设 uploadMyFileAPI 在 @/api/fileService.ts 中定义):
-// import { uploadMyFileAPI } from '@/api/fileService';
-// const { loading: uploadLoading, error: uploadError, send: runUpload } = useRequest(
-//   (file: File) => uploadMyFileAPI(file), // uploadMyFileAPI 接收 File 对象并返回 Method 实例
-//   { immediate: false }
-// );
-// const onFileSelected = (event) => {
-//   const file = event.target.files[0];
-//   if (file) {
-//     runUpload(file);
-//   }
-// }
 </script>
-
-<style lang="scss">
-// 注意你写的是 sass，如果是 scss 可能需要 scoped 等
-// 你的样式
-hr {
-  margin: 20px 0;
-}
-input {
-  margin-right: 10px;
-}
-</style>

@@ -1,8 +1,8 @@
 <template>
   <SidebarProvider>
     <AppSidebar />
-    <main>
-      <SidebarTrigger />
+    <main class="w-full relative">
+      <SidebarTrigger class="absolute top-2 left-2 z-50" />
       <RouterView />
     </main>
   </SidebarProvider>
