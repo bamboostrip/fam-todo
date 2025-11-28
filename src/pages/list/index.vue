@@ -9,40 +9,46 @@
 </route>
 
 <template>
-  <div class="min-h-screen bg-background">
-    <!-- 主内容区域 -->
-    <div class="p-4">
-      <!-- 列表信息 -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-semibold mb-2">{{ listName }}</h1>
-        <p class="text-muted-foreground">自定义列表</p>
-      </div>
+  <TodoListLayout :listId="listId" :title="listName">
+    <template #icon>
+      <component :is="listIcon" class="w-8 h-8" />
+    </template>
 
-      <!-- 列表内容 -->
-      <div class="space-y-4">
-        <!-- 这里将来会显示该列表的待办事项 -->
-        <div class="text-center py-12">
-          <div class="w-12 h-12 text-muted-foreground mx-auto mb-4">
-            <component :is="listIcon" class="w-full h-full" />
-          </div>
-          <h3 class="text-lg font-medium mb-2">{{ listName }}</h3>
-          <p class="text-muted-foreground">这个列表还没有待办事项</p>
-        </div>
-      </div>
+    <!-- TODO列表 -->
+    <div v-if="listTodos.length > 0" class="space-y-1">
+      <TodoItem
+        v-for="todo in listTodos"
+        :key="todo.id"
+        :todo-id="todo.id"
+        @delete="handleDelete"
+      />
     </div>
-  </div>
+
+    <!-- 空状态 -->
+    <EmptyState v-else :theme="currentTheme" :message="`「${listName}」列表还没有待办事项`" />
+
+    <template #footer>
+      <TodoInput context="custom-list" :list-id="listId" @added="handleTodoAdded" />
+    </template>
+  </TodoListLayout>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useListsStore } from '@/store/lists'
+import { useTodosStore } from '@/store/todos'
 import { ListTodo } from 'lucide-vue-next'
 import * as Icons from 'lucide-vue-next'
+import TodoListLayout from '@/components/TodoListLayout.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import TodoItem from '@/components/TodoItem.vue'
+import TodoInput from '@/components/TodoInput.vue'
 
 const route = useRoute()
 const router = useRouter()
 const listsStore = useListsStore()
+const todosStore = useTodosStore()
 
 const listId = computed(() => route.query.id as string)
 
@@ -62,6 +68,27 @@ const listIcon = computed(() => {
   const iconName = currentList.value?.icon || 'ListTodo'
   return (Icons as any)[iconName] || ListTodo
 })
+
+// 当前列表主题
+const currentTheme = computed(() => {
+  return currentList.value?.theme
+})
+
+// 获取该列表的所有未完成任务
+const listTodos = computed(() => {
+  return todosStore.getTodosByListId(listId.value)
+})
+
+// 删除任务
+const handleDelete = (id: string) => {
+  todosStore.deleteTodo(id)
+}
+
+// 添加任务
+const handleTodoAdded = () => {
+  // 当在自定义列表添加任务时，使用 addTodoToList
+  // TodoInput 组件需要知道当前列表ID
+}
 
 // 监听路由变化，如果没有 ID 或列表不存在，跳转到首页
 watch(

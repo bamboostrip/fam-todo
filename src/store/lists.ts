@@ -1,7 +1,20 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-// 智能列表接口（固定菜单）
+/**
+ * 列表类型
+ * - system: 系统默认列表（智能列表）
+ * - user: 用户自定义列表
+ */
+export type ListType = 'system' | 'user'
+
+// 列表主题接口
+export interface ListTheme {
+  type: 'color' | 'image'
+  value: string
+}
+
+// 智能列表接口（固定菜单）- 系统类型
 export interface IntelligentList {
   id: string
   name: string
@@ -10,6 +23,8 @@ export interface IntelligentList {
   icon?: string
   order: number
   isHidden?: boolean
+  theme?: ListTheme
+  type: 'system' // 明确标记为系统类型
 }
 
 // 用户自定义列表接口
@@ -20,6 +35,8 @@ export interface CustomList {
   count?: number
   icon?: string
   order: number
+  theme?: ListTheme
+  type: 'user' // 明确标记为用户类型
 }
 
 export const useListsStore = defineStore(
@@ -31,55 +48,67 @@ export const useListsStore = defineStore(
         id: 'my-day',
         name: '我的一天',
         route: '/',
-        count: 0,
+        count: undefined,
         order: 0,
         icon: 'Sun',
         isHidden: false,
+        theme: { type: 'image', value: new URL('@/assets/bg/1.png', import.meta.url).href },
+        type: 'system',
       },
       {
         id: 'important',
         name: '重要',
         route: '/important',
-        count: 1,
+        count: undefined,
         order: 1,
         icon: 'Star',
         isHidden: false,
+        theme: { type: 'color', value: '#fce4ec' },
+        type: 'system',
       },
       {
         id: 'planned',
         name: '计划内',
         route: '/planned',
-        count: 0,
+        count: undefined,
         order: 2,
         icon: 'Calendar',
         isHidden: false,
+        theme: { type: 'color', value: '#e0f2f1' },
+        type: 'system',
       },
       {
         id: 'tasks',
         name: '任务',
         route: '/tasks',
-        count: 2,
+        count: undefined,
         order: 3,
         icon: 'ListTodo',
         isHidden: false,
+        theme: { type: 'color', value: '#f5f5f5' },
+        type: 'system',
       },
       {
         id: 'completed',
         name: '已完成',
         route: '/completed',
-        count: 0,
+        count: undefined,
         order: 4,
         icon: 'CheckCircle',
         isHidden: true,
+        theme: { type: 'color', value: '#f5f5f5' },
+        type: 'system',
       },
       {
         id: 'all',
         name: '全部',
         route: '/all',
-        count: 0,
+        count: undefined,
         order: 5,
         icon: 'List',
         isHidden: true,
+        theme: { type: 'color', value: '#f5f5f5' },
+        type: 'system',
       },
     ])
 
@@ -119,13 +148,15 @@ export const useListsStore = defineStore(
         throw new Error('列表名重复')
       }
       const maxOrder = Math.max(-1, ...customLists.value.map((l) => l.order))
+      const newListId = `list-${Date.now()}`
       const newList: CustomList = {
-        id: `list-${Date.now()}`,
+        id: newListId,
         name,
-        route: `/list?id=list-${Date.now()}`,
+        route: `/list?id=${newListId}`,
         count: 0,
         icon,
         order: maxOrder + 1,
+        type: 'user', // 明确标记为用户自定义列表
       }
       customLists.value.push(newList)
       return newList
@@ -190,23 +221,58 @@ export const useListsStore = defineStore(
       reorderLists()
     }
 
+    // 更新列表主题
+    const updateListTheme = (listId: string, theme: ListTheme) => {
+      // Try to find in intelligent lists first
+      const intelligentList = intelligentLists.value.find((l) => l.id === listId)
+      if (intelligentList) {
+        intelligentList.theme = theme
+        return
+      }
+
+      // Then try custom lists
+      const customList = customLists.value.find((l) => l.id === listId)
+      if (customList) {
+        customList.theme = theme
+      }
+    }
+
+    // 更新所有列表的计数（基于 todos store）
+    const updateAllListCounts = () => {
+      // 需要从 todos store 导入，但为了避免循环依赖，我们在组件中调用
+      // 这个方法会在 App.vue 或其他地方被调用
+    }
+
     return {
       intelligentLists,
       customLists,
       // methods for intelligent lists
       toggleIntelligentListHidden,
       updateIntelligentListCount,
+      updateAllListCounts,
       // methods for custom lists
       addList,
       deleteList,
       renameList,
       updateListIcon,
       moveList,
+      updateListTheme,
       // utility
       isNameDuplicate,
     }
   },
   {
-    persist: true,
+    persist: {
+      // 数据恢复后重置计数，让 useSyncListCounts 重新计算
+      afterRestore: (ctx) => {
+        const store = ctx.store
+        if (store.intelligentLists && Array.isArray(store.intelligentLists)) {
+          // 重置所有智能列表的计数为 undefined，让 useSyncListCounts 重新计算
+          store.intelligentLists.forEach((list: any) => {
+            list.count = undefined
+          })
+        }
+      },
+    },
   },
 )

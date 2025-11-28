@@ -10,9 +10,13 @@
 import { Toaster } from '@/components/ui/sonner'
 import LoadingAnimation from '@/components/LoadingAnimation.vue'
 import { useLoadingStore } from '@/store'
+import { useSyncListCounts } from '@/composables/useSyncListCounts'
 import 'vue-sonner/style.css'
 
 const loadingStore = useLoadingStore()
+
+// 同步列表计数
+useSyncListCounts()
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Calendar, Star, CheckSquare, ListTodo, CheckCircle, EyeOff, Eye } from 'lucide-vue-next'
+import { Calendar, Star, CheckSquare, ListTodo, CheckCircle } from 'lucide-vue-next'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -76,7 +76,10 @@ const toggleListHidden = (listId: string) => {
                   <component :is="menuIcons[list.id as keyof typeof menuIcons]" class="w-4 h-4" />
                   <span>{{ list.name }}</span>
                 </div>
-                <span v-if="list.count && list.count > 0" class="text-xs text-muted-foreground">
+                <span
+                  v-if="list.count !== undefined && list.count > 0"
+                  class="text-xs text-muted-foreground"
+                >
                   {{ list.count }}
                 </span>
               </SidebarMenuButton>
