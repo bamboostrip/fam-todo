@@ -52,7 +52,7 @@ export const useListsStore = defineStore(
         order: 0,
         icon: 'Sun',
         isHidden: false,
-        theme: { type: 'image', value: new URL('@/assets/bg/1.png', import.meta.url).href },
+        theme: { type: 'color', value: '#F2E7F9' },
         type: 'system',
       },
       {
@@ -63,7 +63,7 @@ export const useListsStore = defineStore(
         order: 1,
         icon: 'Star',
         isHidden: false,
-        theme: { type: 'color', value: '#fce4ec' },
+        theme: { type: 'color', value: '#FCE4EC' },
         type: 'system',
       },
       {
@@ -74,7 +74,7 @@ export const useListsStore = defineStore(
         order: 2,
         icon: 'Calendar',
         isHidden: false,
-        theme: { type: 'color', value: '#e0f2f1' },
+        theme: { type: 'color', value: '#D5F1E5' },
         type: 'system',
       },
       {
@@ -85,7 +85,7 @@ export const useListsStore = defineStore(
         order: 3,
         icon: 'ListTodo',
         isHidden: false,
-        theme: { type: 'color', value: '#f5f5f5' },
+        theme: { type: 'color', value: '#707E89' },
         type: 'system',
       },
       {
@@ -96,7 +96,7 @@ export const useListsStore = defineStore(
         order: 4,
         icon: 'CheckCircle',
         isHidden: true,
-        theme: { type: 'color', value: '#f5f5f5' },
+        theme: { type: 'color', value: '#C5524D' },
         type: 'system',
       },
       {
@@ -107,7 +107,7 @@ export const useListsStore = defineStore(
         order: 5,
         icon: 'List',
         isHidden: true,
-        theme: { type: 'color', value: '#f5f5f5' },
+        theme: { type: 'color', value: '#CA5474' },
         type: 'system',
       },
     ])
