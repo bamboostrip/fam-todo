@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useTodosStore } from '@/store/todos'
+import { useTodosStore, type RecurrenceRule, type RecurrenceType } from '@/store/todos'
 import {
   X,
   Star,
@@ -9,7 +9,6 @@ import {
   Calendar,
   Bell,
   Repeat,
-  Paperclip,
   CalendarClock,
   CalendarRange,
 } from 'lucide-vue-next'
@@ -23,6 +22,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 const props = defineProps<{
   todoId: string | null
@@ -209,6 +217,89 @@ const dueDateColorClass = computed(() => {
   if (due.getTime() === today.getTime()) return 'text-blue-600'
   return 'text-blue-600' // 有截止日期时显示蓝色，除非过期
 })
+
+// ===== 重复功能相关 =====
+const customRecurrenceOpen = ref(false)
+const customInterval = ref(1)
+const customType = ref<RecurrenceType>('daily')
+const selectedWeekdays = ref<number[]>([]) // 0=周日, 1=周一, ..., 6=周六
+
+const recurrenceLabel = computed(() => {
+  if (!todo.value?.recurrence) return '重复'
+  const { type, interval = 1, daysOfWeek } = todo.value.recurrence
+
+  if (type === 'weekly' && daysOfWeek && daysOfWeek.length > 0) {
+    const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const days = daysOfWeek.map((d) => weekdayNames[d]).join(', ')
+    return interval === 1 ? `每周 ${days}` : `每 ${interval} 周 ${days}`
+  }
+
+  const labels: Record<RecurrenceType, string> = {
+    daily: interval === 1 ? '每天' : `每 ${interval} 天`,
+    weekdays: '工作日',
+    weekly: interval === 1 ? '每周' : `每 ${interval} 周`,
+    monthly: interval === 1 ? '每月' : `每 ${interval} 月`,
+    yearly: interval === 1 ? '每年' : `每 ${interval} 年`,
+  }
+  return labels[type]
+})
+
+const recurrenceColorClass = computed(() => {
+  return todo.value?.recurrence ? 'text-blue-600' : 'text-gray-700'
+})
+
+const handleSetRecurrence = (type: RecurrenceType, interval: number = 1) => {
+  if (!props.todoId) return
+  const recurrence: RecurrenceRule = { type, interval }
+  todosStore.setRecurrence(props.todoId, recurrence)
+}
+
+const handleRemoveRecurrence = (e?: Event) => {
+  if (e) e.stopPropagation()
+  if (props.todoId) {
+    todosStore.setRecurrence(props.todoId, null)
+  }
+}
+
+const handleOpenCustomRecurrence = () => {
+  if (todo.value?.recurrence) {
+    customType.value = todo.value.recurrence.type
+    customInterval.value = todo.value.recurrence.interval || 1
+    selectedWeekdays.value = todo.value.recurrence.daysOfWeek || []
+  } else {
+    customType.value = 'daily'
+    customInterval.value = 1
+    selectedWeekdays.value = []
+  }
+  customRecurrenceOpen.value = true
+}
+
+const toggleWeekday = (day: number) => {
+  const index = selectedWeekdays.value.indexOf(day)
+  if (index > -1) {
+    selectedWeekdays.value.splice(index, 1)
+  } else {
+    selectedWeekdays.value.push(day)
+  }
+  // 排序
+  selectedWeekdays.value.sort((a, b) => a - b)
+}
+
+const handleSaveCustomRecurrence = () => {
+  if (!props.todoId) return
+  const recurrence: RecurrenceRule = {
+    type: customType.value,
+    interval: customInterval.value,
+  }
+
+  // 如果是周重复且选择了具体的星期几
+  if (customType.value === 'weekly' && selectedWeekdays.value.length > 0) {
+    recurrence.daysOfWeek = selectedWeekdays.value
+  }
+
+  todosStore.setRecurrence(props.todoId, recurrence)
+  customRecurrenceOpen.value = false
+}
 </script>
 
 <template>
@@ -394,20 +485,52 @@ const dueDateColorClass = computed(() => {
           </div>
 
           <!-- 重复 -->
-          <button
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
-          >
-            <Repeat class="w-5 h-5 text-gray-600" />
-            <span class="flex-1 text-gray-700">重复</span>
-          </button>
-
-          <!-- 添加文件 -->
-          <button
-            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left"
-          >
-            <Paperclip class="w-5 h-5 text-gray-600" />
-            <span class="flex-1 text-gray-700">添加文件</span>
-          </button>
+          <div class="relative w-full">
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <button
+                  class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors text-left group"
+                >
+                  <Repeat class="w-5 h-5" :class="recurrenceColorClass" />
+                  <span class="flex-1" :class="recurrenceColorClass">{{ recurrenceLabel }}</span>
+                  <div
+                    v-if="todo.recurrence"
+                    class="p-1 hover:bg-gray-200 rounded-full transition-colors"
+                    @click.stop="handleRemoveRecurrence"
+                  >
+                    <X class="w-4 h-4 text-gray-500" />
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent class="w-56 z-[102]" align="start">
+                <DropdownMenuItem @click="handleSetRecurrence('daily', 1)">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>每天</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="handleSetRecurrence('weekdays', 1)">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>工作日</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="handleSetRecurrence('weekly', 1)">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>每周</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="handleSetRecurrence('monthly', 1)">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>每月</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="handleSetRecurrence('yearly', 1)">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>每年</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="handleOpenCustomRecurrence">
+                  <Repeat class="mr-2 h-4 w-4" />
+                  <span>自定义</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <!-- 添加备注 -->
           <div class="pt-4 border-t">
@@ -426,5 +549,53 @@ const dueDateColorClass = computed(() => {
         </div>
       </div>
     </Transition>
+
+    <!-- 自定义重复对话框 -->
+    <Dialog v-model:open="customRecurrenceOpen">
+      <DialogContent class="sm:max-w-md z-[103]">
+        <DialogHeader>
+          <DialogTitle>重复周期...</DialogTitle>
+        </DialogHeader>
+        <div class="space-y-4 py-4">
+          <div class="flex items-center gap-4">
+            <Input v-model.number="customInterval" type="number" min="1" class="w-20" />
+            <select
+              v-model="customType"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="daily">天</option>
+              <option value="weekly">周</option>
+              <option value="monthly">月</option>
+              <option value="yearly">年</option>
+            </select>
+          </div>
+
+          <!-- 周重复时显示星期选择 -->
+          <div v-if="customType === 'weekly'" class="space-y-2">
+            <div class="text-sm text-gray-600">选择星期</div>
+            <div class="grid grid-cols-4 gap-2">
+              <button
+                v-for="(day, index) in ['周日', '周一', '周二', '周三', '周四', '周五', '周六']"
+                :key="index"
+                type="button"
+                class="px-3 py-2 rounded-md border text-sm transition-colors"
+                :class="
+                  selectedWeekdays.includes(index)
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                "
+                @click="toggleWeekday(index)"
+              >
+                {{ day }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="customRecurrenceOpen = false">取消</Button>
+          <Button @click="handleSaveCustomRecurrence">保存</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </Teleport>
 </template>

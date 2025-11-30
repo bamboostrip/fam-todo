@@ -135,6 +135,13 @@ export const useListsStore = defineStore(
       }
     }
 
+    const updateCustomListCount = (listId: string, count: number) => {
+      const list = customLists.value.find((l) => l.id === listId)
+      if (list) {
+        list.count = count
+      }
+    }
+
     // 重新计算列表的 order
     const reorderLists = () => {
       customLists.value.forEach((list, index) => {
@@ -157,6 +164,7 @@ export const useListsStore = defineStore(
         icon,
         order: maxOrder + 1,
         type: 'user', // 明确标记为用户自定义列表
+        theme: { type: 'color', value: '#5F73C1' }, // 默认蓝色主题
       }
       customLists.value.push(newList)
       return newList
@@ -249,6 +257,7 @@ export const useListsStore = defineStore(
       // methods for intelligent lists
       toggleIntelligentListHidden,
       updateIntelligentListCount,
+      updateCustomListCount,
       updateAllListCounts,
       // methods for custom lists
       addList,

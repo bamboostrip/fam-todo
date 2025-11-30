@@ -1,3 +1,11 @@
+/*
+ * @Author: bamboo
+ * @Date: 2025-11-28 21:55:20
+ * @LastEditors: kirarin 2199141791@qq.com
+ * @LastEditTime: 2025-11-30 20:50:57
+ * @FilePath: \fam-todo\src\utils\theme.ts
+ * @Description:
+ */
 import { type ListTheme } from '@/store/lists'
 
 // Configuration for Theme Colors and their corresponding Text Colors
@@ -12,6 +20,7 @@ export const THEME_COLORS = [
   { value: '#707E89', textColor: '#FFFFFF' },
   { value: '#E7ECF0', textColor: '#586570' },
   { value: '#FCE4EC', textColor: '#AC395D' },
+  { value: '#5F73C1', textColor: '#FFFFFF' },
 ]
 
 export const getTextColor = (theme: ListTheme | undefined): string => {

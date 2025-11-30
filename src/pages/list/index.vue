@@ -14,14 +14,42 @@
       <component :is="listIcon" class="w-8 h-8" />
     </template>
 
-    <!-- TODO列表 -->
-    <div v-if="listTodos.length > 0" class="space-y-1">
-      <TodoItem
-        v-for="todo in listTodos"
-        :key="todo.id"
-        :todo-id="todo.id"
-        @delete="handleDelete"
-      />
+    <div v-if="listTodos.length > 0 || completedListTodos.length > 0" class="space-y-4">
+      <!-- 未完成的任务 -->
+      <div v-if="listTodos.length > 0" class="space-y-1">
+        <TodoItem
+          v-for="todo in listTodos"
+          :key="todo.id"
+          :todo-id="todo.id"
+          @delete="handleDelete"
+        />
+      </div>
+
+      <!-- 已完成分组 -->
+      <div v-if="completedListTodos.length > 0" class="space-y-2">
+        <button
+          class="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors"
+          @click="showCompleted = !showCompleted"
+        >
+          <span class="inline-flex items-center gap-1" :style="accentStyle">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline :points="showCompleted ? '6 9 12 15 18 9' : '9 6 15 12 9 18'" />
+            </svg>
+            已完成
+          </span>
+          <span class="text-xs rounded px-1.5 py-0.5" :style="accentStyle">
+            {{ completedListTodos.length }}
+          </span>
+        </button>
+        <div v-show="showCompleted" class="space-y-1">
+          <TodoItem
+            v-for="todo in completedListTodos"
+            :key="todo.id"
+            :todo-id="todo.id"
+            @delete="handleDelete"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- 空状态 -->
@@ -34,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useListsStore } from '@/store/lists'
 import { useTodosStore } from '@/store/todos'
@@ -44,6 +72,7 @@ import TodoListLayout from '@/components/TodoListLayout.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import TodoItem from '@/components/TodoItem.vue'
 import TodoInput from '@/components/TodoInput.vue'
+import { getTextColor } from '@/utils/theme'
 
 const route = useRoute()
 const router = useRouter()
@@ -77,6 +106,23 @@ const currentTheme = computed(() => {
 // 获取该列表的所有未完成任务
 const listTodos = computed(() => {
   return todosStore.getTodosByListId(listId.value)
+})
+
+// 获取该列表的已完成任务
+const completedListTodos = computed(() => {
+  return todosStore.completedTodos.filter((t) => t.listId === listId.value)
+})
+
+const showCompleted = ref(false)
+
+const accentColor = computed(() => getTextColor(currentTheme.value))
+
+const accentStyle = computed(() => {
+  const color = accentColor.value
+  // 如果是白色文字，改用黑色避免白底白字
+  const finalColor =
+    color.toLowerCase() === '#ffffff' || color.toLowerCase() === '#fff' ? '#000000' : color
+  return { color: finalColor }
 })
 
 // 删除任务

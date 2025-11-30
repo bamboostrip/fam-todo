@@ -163,6 +163,115 @@ export const useTodosStore = defineStore(
     }
 
     /**
+     * 本地起始时间（去除时分秒）
+     */
+    const startOfLocalDay = (d: Date): Date => {
+      const nd = new Date(d)
+      nd.setHours(0, 0, 0, 0)
+      return nd
+    }
+
+    /**
+     * 将 YYYY-MM-DD 或 ISO 字符串解析为本地 00:00 的 Date
+     */
+    const parseToLocalDate = (dateString: string): Date => {
+      if (!dateString) return startOfLocalDay(new Date())
+      if (dateString.includes('T')) {
+        return startOfLocalDay(new Date(dateString))
+      }
+      const [y, m, d] = dateString.split('-').map((n) => parseInt(n, 10))
+      return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0)
+    }
+
+    /**
+     * 将 Date 转成 ISO 字符串（保持本地 00:00）
+     */
+    const toIsoDateString = (d: Date): string => {
+      return startOfLocalDay(d).toISOString()
+    }
+
+    /**
+     * 计算从 prevDate 开始，按照 recurrence 规则前进一步的日期
+     * 不执行 catch-up，仅向前推进一次
+     */
+    const stepNextByRule = (prevDate: Date, rule: RecurrenceRule): Date => {
+      const interval = Math.max(1, rule.interval || 1)
+      const date = startOfLocalDay(prevDate)
+      const addDays = (n: number) =>
+        startOfLocalDay(new Date(date.getFullYear(), date.getMonth(), date.getDate() + n))
+      const startOfWeek = (d: Date, weekStartsOn = 0): Date => {
+        const dow = d.getDay()
+        const diff = (dow - weekStartsOn + 7) % 7
+        return startOfLocalDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() - diff))
+      }
+      const addDaysFrom = (base: Date, n: number) =>
+        startOfLocalDay(new Date(base.getFullYear(), base.getMonth(), base.getDate() + n))
+      switch (rule.type) {
+        case 'daily':
+          return addDays(interval)
+        case 'weekdays': {
+          // 每次向前至少一天，落到下一个工作日
+          let next = addDays(1)
+          while (next.getDay() === 0 || next.getDay() === 6) {
+            next = addDays((next.getTime() - date.getTime()) / 86400000 + 1)
+          }
+          return next
+        }
+        case 'weekly': {
+          // 支持 daysOfWeek；若未提供，则按整周推进（基于系列周对齐）
+          const days = (rule.daysOfWeek || []).slice().sort((a, b) => a - b)
+          if (days.length === 0) {
+            return addDays(7 * interval)
+          }
+          const weekStart = startOfWeek(date, 0) // 以周日为周起始
+          const currentDow = date.getDay()
+          // 1) 本系列周内，寻找严格晚于当前日的下一个选中星期
+          const after = days.filter((d) => d > currentDow)
+          if (after.length > 0) {
+            // 返回本周下一个选中日
+            return addDaysFrom(weekStart, after[0])
+          }
+          // 2) 若本系列周已无后续选中日，则跳到下一“系列周”（按 interval 周数推进），取该周的第一个选中日
+          const nextSeriesWeekStart = addDaysFrom(weekStart, 7 * interval)
+          return addDaysFrom(nextSeriesWeekStart, days[0])
+        }
+        case 'monthly': {
+          const next = new Date(date)
+          next.setMonth(next.getMonth() + interval)
+          return startOfLocalDay(next)
+        }
+        case 'yearly': {
+          const next = new Date(date)
+          next.setFullYear(next.getFullYear() + interval)
+          return startOfLocalDay(next)
+        }
+        default:
+          return addDays(1)
+      }
+    }
+
+    /**
+     * 按需求文档的 Catch-up 策略计算下一个日期
+     * 规则：至少前进一步；若仍早于今天，则循环前进直到 >= 今天
+     */
+    const calculateNextRecurrenceDate = (previousDate: Date, rule: RecurrenceRule): Date => {
+      const today = startOfLocalDay(new Date())
+      let next = stepNextByRule(previousDate, rule)
+      while (next.getTime() < today.getTime()) {
+        next = stepNextByRule(next, rule)
+      }
+      return next
+    }
+
+    /**
+     * 生成新任务时克隆 steps：复制内容，重置完成状态并生成新 id
+     */
+    const cloneStepsForNewTodo = (steps: SubTodo[] | undefined): SubTodo[] => {
+      if (!steps || steps.length === 0) return []
+      return steps.map((s) => ({ id: uuidv4(), content: s.content, isCompleted: false }))
+    }
+
+    /**
      * 创建新的子任务
      */
     const createSubTodo = (content: string): SubTodo => {
@@ -262,7 +371,7 @@ export const useTodosStore = defineStore(
         todo.isCompleted = !todo.isCompleted
         todo.completedAt = todo.isCompleted ? new Date().toISOString() : null
 
-        // 如果是重复任务完成，创建新实例
+        // 如果是重复任务完成，创建新实例（按需求文档）
         if (todo.isCompleted && todo.recurrence) {
           createNextRecurrence(todo)
         }
@@ -273,53 +382,25 @@ export const useTodosStore = defineStore(
      * 创建重复任务的下一个实例
      */
     const createNextRecurrence = (completedTodo: Todo) => {
-      if (!completedTodo.recurrence || !completedTodo.plannedDate) return
+      if (!completedTodo.recurrence) return
+      // 基准：若无 plannedDate，用 createdAt 或今天
+      const base = completedTodo.plannedDate
+        ? parseToLocalDate(completedTodo.plannedDate)
+        : startOfLocalDay(new Date(completedTodo.createdAt || new Date()))
 
-      const currentDate = new Date(completedTodo.plannedDate)
-      let nextDate: Date
+      const nextDate = calculateNextRecurrenceDate(base, completedTodo.recurrence)
 
-      switch (completedTodo.recurrence.type) {
-        case 'daily':
-          nextDate = new Date(
-            currentDate.setDate(currentDate.getDate() + (completedTodo.recurrence.interval || 1)),
-          )
-          break
-        case 'weekdays':
-          nextDate = new Date(currentDate)
-          do {
-            nextDate.setDate(nextDate.getDate() + 1)
-          } while (nextDate.getDay() === 0 || nextDate.getDay() === 6)
-          break
-        case 'weekly':
-          nextDate = new Date(
-            currentDate.setDate(
-              currentDate.getDate() + 7 * (completedTodo.recurrence.interval || 1),
-            ),
-          )
-          break
-        case 'monthly':
-          nextDate = new Date(
-            currentDate.setMonth(currentDate.getMonth() + (completedTodo.recurrence.interval || 1)),
-          )
-          break
-        case 'yearly':
-          nextDate = new Date(
-            currentDate.setFullYear(
-              currentDate.getFullYear() + (completedTodo.recurrence.interval || 1),
-            ),
-          )
-          break
-        default:
-          return
-      }
-
+      // 生成新任务（遵循需求文档字段规则）
       addTodo(completedTodo.content, {
         isImportant: completedTodo.isImportant,
-        plannedDate: nextDate.toISOString(),
-        recurrence: completedTodo.recurrence,
+        myDayDate: null, // 不自动进入我的一天
+        plannedDate: toIsoDateString(nextDate),
+        recurrence: { ...completedTodo.recurrence },
         note: completedTodo.note,
         listId: completedTodo.listId,
-        steps: [], // 新实例不继承子任务
+        steps: cloneStepsForNewTodo(completedTodo.steps),
+        isCompleted: false,
+        reminderTime: null,
       })
     }
 
@@ -365,11 +446,13 @@ export const useTodosStore = defineStore(
       }
     }
 
-    // 清除截止日期
+    // 清除截止日期（按需求：同时清除重复）
     const clearDueDate = (id: string) => {
       const todo = todos.value.find((t) => t.id === id)
       if (todo) {
         todo.plannedDate = null
+        // 删除截止日期时，默认也要删除重复
+        todo.recurrence = null
       }
     }
 
@@ -394,6 +477,43 @@ export const useTodosStore = defineStore(
       const todo = todos.value.find((t) => t.id === id)
       if (todo) {
         todo.recurrence = recurrence
+        // 若设置了重复规则且尚无 plannedDate，根据规则赋默认到期（需求 6）
+        if (recurrence && !todo.plannedDate) {
+          const today = startOfLocalDay(new Date())
+          let initial = today
+
+          if (recurrence.type === 'weekdays') {
+            const day = today.getDay()
+            // 周六 -> 下周一(+2); 周日 -> 周一(+1)
+            if (day === 6)
+              initial = startOfLocalDay(
+                new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2),
+              )
+            else if (day === 0)
+              initial = startOfLocalDay(
+                new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+              )
+          } else if (
+            recurrence.type === 'weekly' &&
+            recurrence.daysOfWeek &&
+            recurrence.daysOfWeek.length > 0
+          ) {
+            // 找到从今天起的最近匹配的星期
+            const days = recurrence.daysOfWeek.slice().sort((a, b) => a - b)
+            let found: Date | null = null
+            for (let offset = 0; offset < 7 * Math.max(1, recurrence.interval || 1); offset++) {
+              const candidate = startOfLocalDay(
+                new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset),
+              )
+              if (days.includes(candidate.getDay())) {
+                found = candidate
+                break
+              }
+            }
+            if (found) initial = found
+          }
+          todo.plannedDate = toIsoDateString(initial)
+        }
       }
     }
 

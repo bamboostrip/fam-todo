@@ -1,7 +1,27 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useTodosStore } from '@/store/todos'
-import { Circle, Plus, Home, Star, Calendar, Clock } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { useTodosStore, type RecurrenceRule, type RecurrenceType } from '@/store/todos'
+import { useListsStore } from '@/store/lists'
+import { Circle, Plus, Star, Calendar, Repeat, Check } from 'lucide-vue-next'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import DatePicker from '@/components/DatePicker.vue'
+import * as LucideIcons from 'lucide-vue-next'
 
 /**
  * 创建上下文类型
@@ -31,41 +51,114 @@ const emit = defineEmits<{
 }>()
 
 const todosStore = useTodosStore()
+const listsStore = useListsStore()
 const inputValue = ref('')
 const isFocused = ref(false)
+const isImportant = ref(false)
+const selectedDate = ref<Date | null>(null)
+const isDatePickerOpen = ref(false)
+const showDateOptions = ref(false)
+const showListOptions = ref(false)
+const selectedListId = ref('tasks')
+const selectedRecurrence = ref<RecurrenceRule | null>(null)
+const customRecurrenceOpen = ref(false)
+const customInterval = ref(1)
+const customType = ref<RecurrenceType>('daily')
+const selectedWeekdays = ref<number[]>([])
+
+// 获取所有可用的列表（包括系统列表和自定义列表）
+const availableLists = computed(() => {
+  // 只显示"任务"列表和用户自定义列表
+  const tasksList = listsStore.intelligentLists.find((list) => list.id === 'tasks')
+  const lists = tasksList ? [tasksList] : []
+  return [...lists, ...listsStore.customLists]
+})
+
+// 获取当前选中列表的信息
+const selectedList = computed(() => {
+  return (
+    availableLists.value.find((list) => list.id === selectedListId.value) || availableLists.value[0]
+  )
+})
+
+// 获取图标组件
+const getIconComponent = (iconName: string) => {
+  return (LucideIcons as any)[iconName] || Circle
+}
+
+// 重复规则标签
+const recurrenceLabel = computed(() => {
+  if (!selectedRecurrence.value) return ''
+  const { type, interval = 1, daysOfWeek } = selectedRecurrence.value
+
+  if (type === 'weekly' && daysOfWeek && daysOfWeek.length > 0) {
+    const weekdayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+    const days = daysOfWeek.map((d) => weekdayNames[d]).join(', ')
+    return interval === 1 ? `每周 ${days}` : `每 ${interval} 周 ${days}`
+  }
+
+  const labels: Record<RecurrenceType, string> = {
+    daily: interval === 1 ? '每天' : `每 ${interval} 天`,
+    weekdays: '工作日',
+    weekly: interval === 1 ? '每周' : `每 ${interval} 周`,
+    monthly: interval === 1 ? '每月' : `每 ${interval} 月`,
+    yearly: interval === 1 ? '每年' : `每 ${interval} 年`,
+  }
+  return labels[type]
+})
 
 const handleAddTodo = () => {
   const content = inputValue.value.trim()
   if (content) {
+    // 构建 options 对象
+    const options: any = {}
+    if (isImportant.value) {
+      options.isImportant = true
+    }
+    if (selectedDate.value) {
+      options.plannedDate = formatDate(selectedDate.value)
+    }
+    if (selectedRecurrence.value) {
+      options.recurrence = selectedRecurrence.value
+    }
+    // 设置所属列表
+    if (selectedListId.value !== 'tasks') {
+      options.listId = selectedListId.value
+    }
+
     // 根据上下文决定使用哪个方法创建任务
     switch (props.context) {
       case 'my-day':
         // 在"我的一天"视图创建：myDayDate = Today, listId = tasks
-        todosStore.addTodoToMyDay(content)
+        todosStore.addTodoToMyDay(content, options)
         break
       case 'important':
         // 在"重要"视图创建：isImportant = true, listId = tasks
-        todosStore.addImportantTodo(content)
+        todosStore.addImportantTodo(content, options)
         break
       case 'planned':
         // 在"计划内"视图创建：plannedDate = Today, listId = tasks
-        todosStore.addPlannedTodo(content)
+        todosStore.addPlannedTodo(content, selectedDate.value || undefined, options)
         break
       case 'custom-list':
         // 在自定义列表视图创建：listId = 当前列表ID
         if (props.listId) {
-          todosStore.addTodoToList(content, props.listId)
+          todosStore.addTodoToList(content, props.listId, options)
         } else {
-          todosStore.addTodo(content)
+          todosStore.addTodo(content, options)
         }
         break
       case 'tasks':
       default:
         // 在"任务"视图创建：普通任务，无特殊属性
-        todosStore.addTodo(content)
+        todosStore.addTodo(content, options)
         break
     }
     inputValue.value = ''
+    isImportant.value = false
+    selectedDate.value = null
+    selectedRecurrence.value = null
+    selectedListId.value = 'tasks' // 重置为默认列表
     emit('added')
   }
 }
@@ -80,6 +173,94 @@ const handleCircleClick = () => {
   if (inputValue.value.trim()) {
     handleAddTodo()
   }
+}
+
+const toggleImportant = () => {
+  isImportant.value = !isImportant.value
+}
+
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getWeekday = (date: Date): string => {
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+  return weekdays[date.getDay()]
+}
+
+const todayWeekday = ref(getWeekday(new Date()))
+const tomorrowWeekday = ref(getWeekday(new Date(Date.now() + 86400000)))
+
+const setToday = () => {
+  selectedDate.value = new Date()
+  showDateOptions.value = false
+}
+
+const setTomorrow = () => {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  selectedDate.value = tomorrow
+  showDateOptions.value = false
+}
+
+const openCustomDatePicker = () => {
+  showDateOptions.value = false
+  isDatePickerOpen.value = true
+}
+
+const handleDateConfirm = (date: Date | null) => {
+  selectedDate.value = date
+  isDatePickerOpen.value = false
+}
+
+const selectList = (listId: string) => {
+  selectedListId.value = listId
+  showListOptions.value = false
+}
+
+// 重复功能
+const handleSetRecurrence = (type: RecurrenceType, interval: number = 1) => {
+  selectedRecurrence.value = { type, interval }
+}
+
+const handleOpenCustomRecurrence = () => {
+  if (selectedRecurrence.value) {
+    customType.value = selectedRecurrence.value.type
+    customInterval.value = selectedRecurrence.value.interval || 1
+    selectedWeekdays.value = selectedRecurrence.value.daysOfWeek || []
+  } else {
+    customType.value = 'daily'
+    customInterval.value = 1
+    selectedWeekdays.value = []
+  }
+  customRecurrenceOpen.value = true
+}
+
+const toggleWeekday = (day: number) => {
+  const index = selectedWeekdays.value.indexOf(day)
+  if (index > -1) {
+    selectedWeekdays.value.splice(index, 1)
+  } else {
+    selectedWeekdays.value.push(day)
+  }
+  selectedWeekdays.value.sort((a, b) => a - b)
+}
+
+const handleSaveCustomRecurrence = () => {
+  const recurrence: RecurrenceRule = {
+    type: customType.value,
+    interval: customInterval.value,
+  }
+
+  if (customType.value === 'weekly' && selectedWeekdays.value.length > 0) {
+    recurrence.daysOfWeek = selectedWeekdays.value
+  }
+
+  selectedRecurrence.value = recurrence
+  customRecurrenceOpen.value = false
 }
 </script>
 
@@ -106,20 +287,188 @@ const handleCircleClick = () => {
       @keydown="handleKeydown"
     />
 
-    <!-- 操作按钮 - 聚焦时显示在右侧 -->
-    <div v-show="isFocused" class="flex items-center gap-2 flex-shrink-0">
-      <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="添加到我的一天">
-        <Home class="w-4 h-4 text-gray-600" />
+    <!-- 操作按钮 - 输入时始终显示在右侧 -->
+    <div v-show="isFocused || inputValue" class="flex items-center gap-2 flex-shrink-0">
+      <!-- 列表选择按钮 -->
+      <Popover v-model:open="showListOptions">
+        <PopoverTrigger as-child>
+          <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="选择列表">
+            <component
+              :is="getIconComponent(selectedList?.icon || 'Home')"
+              :class="['w-4 h-4', selectedListId !== 'tasks' ? 'text-blue-500' : 'text-gray-600']"
+            />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent class="w-52 p-2" align="end">
+          <div class="flex flex-col gap-1">
+            <button
+              v-for="list in availableLists"
+              :key="list.id"
+              class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition-colors text-left"
+              @click="selectList(list.id)"
+            >
+              <component
+                :is="getIconComponent(list.icon || 'Home')"
+                class="w-4 h-4 text-gray-600 flex-shrink-0"
+              />
+              <div class="flex-1 text-sm font-medium truncate">{{ list.name }}</div>
+              <Check
+                v-if="selectedListId === list.id"
+                class="w-4 h-4 text-blue-500 flex-shrink-0"
+              />
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <!-- 星标按钮 -->
+      <button
+        class="p-1.5 rounded hover:bg-gray-100 transition-colors"
+        title="标记为重要"
+        @click="toggleImportant"
+      >
+        <Star
+          :class="[
+            'w-4 h-4 transition-colors',
+            isImportant ? 'text-yellow-500 fill-yellow-500' : 'text-gray-600',
+          ]"
+        />
       </button>
-      <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="添加到任务">
-        <Star class="w-4 h-4 text-gray-600" />
-      </button>
-      <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="添加截止日期">
-        <Calendar class="w-4 h-4 text-gray-600" />
-      </button>
-      <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="提醒我">
-        <Clock class="w-4 h-4 text-gray-600" />
-      </button>
+
+      <!-- 日历按钮 - 带下拉菜单 -->
+      <Popover v-model:open="showDateOptions">
+        <PopoverTrigger as-child>
+          <button class="p-1.5 rounded hover:bg-gray-100 transition-colors" title="添加截止日期">
+            <Calendar :class="['w-4 h-4', selectedDate ? 'text-blue-500' : 'text-gray-600']" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent class="w-48 p-2" align="end">
+          <div class="flex flex-col gap-1">
+            <button
+              class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition-colors text-left"
+              @click="setToday"
+            >
+              <Calendar class="w-4 h-4 text-blue-500" />
+              <div class="flex-1">
+                <div class="text-sm font-medium">今天</div>
+                <div class="text-xs text-gray-500">{{ todayWeekday }}</div>
+              </div>
+            </button>
+            <button
+              class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition-colors text-left"
+              @click="setTomorrow"
+            >
+              <Calendar class="w-4 h-4 text-green-500" />
+              <div class="flex-1">
+                <div class="text-sm font-medium">明天</div>
+                <div class="text-xs text-gray-500">{{ tomorrowWeekday }}</div>
+              </div>
+            </button>
+            <div class="h-px bg-gray-200 my-1"></div>
+            <button
+              class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition-colors text-left"
+              @click="openCustomDatePicker"
+            >
+              <Calendar class="w-4 h-4 text-gray-600" />
+              <div class="text-sm font-medium">选择日期</div>
+            </button>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <!-- 重复按钮 -->
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <button
+            class="p-1.5 rounded hover:bg-gray-100 transition-colors"
+            :title="recurrenceLabel || '重复'"
+          >
+            <Repeat :class="['w-4 h-4', selectedRecurrence ? 'text-blue-500' : 'text-gray-600']" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent class="w-56" align="end">
+          <DropdownMenuItem @click="handleSetRecurrence('daily', 1)">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>每天</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="handleSetRecurrence('weekdays', 1)">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>工作日</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="handleSetRecurrence('weekly', 1)">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>每周</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="handleSetRecurrence('monthly', 1)">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>每月</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="handleSetRecurrence('yearly', 1)">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>每年</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem @click="handleOpenCustomRecurrence">
+            <Repeat class="mr-2 h-4 w-4" />
+            <span>自定义</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
+
+    <!-- 自定义日期选择器弹窗 -->
+    <DatePicker
+      v-model="selectedDate"
+      v-model:open="isDatePickerOpen"
+      @confirm="handleDateConfirm"
+    />
+
+    <!-- 自定义重复对话框 -->
+    <Dialog v-model:open="customRecurrenceOpen">
+      <DialogContent class="sm:max-w-md z-[103]">
+        <DialogHeader>
+          <DialogTitle>重复周期...</DialogTitle>
+        </DialogHeader>
+        <div class="space-y-4 py-4">
+          <div class="flex items-center gap-4">
+            <Input v-model.number="customInterval" type="number" min="1" class="w-20" />
+            <select
+              v-model="customType"
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="daily">天</option>
+              <option value="weekly">周</option>
+              <option value="monthly">月</option>
+              <option value="yearly">年</option>
+            </select>
+          </div>
+
+          <!-- 周重复时显示星期选择 -->
+          <div v-if="customType === 'weekly'" class="space-y-2">
+            <div class="text-sm text-gray-600">选择星期</div>
+            <div class="grid grid-cols-4 gap-2">
+              <button
+                v-for="(day, index) in ['周日', '周一', '周二', '周三', '周四', '周五', '周六']"
+                :key="index"
+                type="button"
+                class="px-3 py-2 rounded-md border text-sm transition-colors"
+                :class="
+                  selectedWeekdays.includes(index)
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                "
+                @click="toggleWeekday(index)"
+              >
+                {{ day }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="customRecurrenceOpen = false">取消</Button>
+          <Button @click="handleSaveCustomRecurrence">保存</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

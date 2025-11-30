@@ -10,8 +10,12 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from '@/components/ui/context-menu'
 import DatePicker from './DatePicker.vue'
+import * as LucideIcons from 'lucide-vue-next'
 
 const props = defineProps<{
   todoId: string
@@ -42,6 +46,19 @@ const isInMyDay = computed(() => {
 const listName = computed(() => {
   if (!todo.value?.listId) return ''
 
+  // 如果当前任务就在它所属的列表页面中，不显示列表名
+  // 只在"我的一天"、"重要"、"计划内"、"全部"、"已完成"等智能列表中显示所属列表
+  const currentRoute = window.location.pathname
+
+  // 检查是否在任务页面或当前任务所属的自定义列表页面
+  if (currentRoute === '/tasks' && todo.value.listId === DEFAULT_TASKS_LIST_ID) {
+    return '' // 在任务页面不显示"任务"
+  }
+
+  if (currentRoute.includes('/list') && currentRoute.includes(todo.value.listId)) {
+    return '' // 在自定义列表页面不显示当前列表名
+  }
+
   // 先在智能列表中查找
   const intelligentList = listsStore.intelligentLists.find((l) => l.id === todo.value?.listId)
   if (intelligentList) {
@@ -54,12 +71,13 @@ const listName = computed(() => {
     return customList.name
   }
 
-  // 默认返回"任务"
-  if (todo.value.listId === DEFAULT_TASKS_LIST_ID) {
-    return '任务'
-  }
-
   return ''
+})
+
+// 是否显示"我的一天"标签（只在任务页面和自定义列表页面显示）
+const shouldShowMyDayLabel = computed(() => {
+  const currentRoute = window.location.pathname
+  return (currentRoute === '/tasks' || currentRoute.includes('/list')) && isInMyDay.value
 })
 
 const handleToggleComplete = () => {
@@ -156,6 +174,24 @@ const dueDateColorClass = computed(() => {
   if (due.getTime() === today.getTime()) return 'text-blue-600'
   return 'text-gray-600'
 })
+
+// 获取所有可用的列表（用于移动任务）
+const availableLists = computed(() => {
+  // 获取"任务"列表和所有自定义列表
+  const tasksList = listsStore.intelligentLists.find((list) => list.id === 'tasks')
+  const lists = tasksList ? [tasksList] : []
+  return [...lists, ...listsStore.customLists]
+})
+
+// 获取图标组件
+const getIconComponent = (iconName: string) => {
+  return (LucideIcons as any)[iconName] || Circle
+}
+
+// 移动任务到指定列表
+const handleMoveToList = (listId: string) => {
+  todosStore.moveTodoToList(props.todoId, listId)
+}
 </script>
 
 <template>
@@ -196,14 +232,39 @@ const dueDateColorClass = computed(() => {
             {{ todo.content }}
             <!-- 子任务进度和截止日期展示 -->
             <div class="mt-1 flex items-center gap-2 text-xs">
-              <!-- 所属列表 -->
-              <span v-if="listName" class="text-gray-500 flex items-center gap-1">
-                {{ listName }}
+              <!-- 我的一天标签（只在任务页面和自定义列表页面显示） -->
+              <span v-if="shouldShowMyDayLabel" class="text-blue-600 flex items-center gap-1">
+                <svg
+                  class="w-3 h-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                我的一天
               </span>
+
+              <!-- 所属列表 -->
+              <template v-if="listName">
+                <span v-if="shouldShowMyDayLabel" class="text-gray-300">·</span>
+                <span class="text-gray-500 flex items-center gap-1">
+                  {{ listName }}
+                </span>
+              </template>
 
               <!-- 子任务进度 -->
               <template v-if="stepsProgress.total > 0">
-                <span v-if="listName" class="text-gray-300">·</span>
+                <span v-if="listName || shouldShowMyDayLabel" class="text-gray-300">·</span>
                 <span class="text-gray-600 flex items-center gap-1">
                   <svg
                     class="w-3 h-3"
@@ -221,7 +282,12 @@ const dueDateColorClass = computed(() => {
 
               <!-- 截止日期 -->
               <template v-if="todo.plannedDate">
-                <span v-if="listName || stepsProgress.total > 0" class="text-gray-300">·</span>
+                <span
+                  v-if="listName || stepsProgress.total > 0 || shouldShowMyDayLabel"
+                  class="text-gray-300"
+                >
+                  ·
+                </span>
                 <div class="flex items-center gap-1">
                   <svg
                     class="w-3 h-3 text-gray-400"
@@ -345,18 +411,40 @@ const dueDateColorClass = computed(() => {
         </ContextMenuItem>
 
         <!-- 将任务移动到列表 -->
-        <ContextMenuItem>
-          <span class="flex items-center gap-2">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <polyline points="19 12 12 19 5 12" />
-            </svg>
-            将任务移动到列表...
-          </span>
-          <svg class="ml-auto w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <span class="flex items-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <polyline points="19 12 12 19 5 12" />
+              </svg>
+              将任务移动到列表...
+            </span>
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent class="w-48">
+            <ContextMenuItem
+              v-for="list in availableLists"
+              :key="list.id"
+              :disabled="list.id === todo.listId"
+              @click="handleMoveToList(list.id)"
+            >
+              <span class="flex items-center gap-2">
+                <component :is="getIconComponent(list.icon || 'Home')" class="w-4 h-4" />
+                {{ list.name }}
+              </span>
+              <svg
+                v-if="list.id === todo.listId"
+                class="ml-auto w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
 
         <ContextMenuSeparator />
 

@@ -106,6 +106,12 @@ export function useSyncListCounts() {
     // 全部：所有未完成的 TODO
     const allCount = todos.filter((t) => !t.isCompleted).length
     listsStore.updateIntelligentListCount('all', allCount)
+
+    // 自定义列表：更新每个自定义列表的未完成任务计数
+    listsStore.customLists.forEach((list) => {
+      const customListCount = todos.filter((t) => t.listId === list.id && !t.isCompleted).length
+      listsStore.updateCustomListCount(list.id, customListCount)
+    })
   })
 
   return {
