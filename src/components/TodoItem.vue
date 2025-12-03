@@ -175,6 +175,15 @@ const dueDateColorClass = computed(() => {
   return 'text-gray-600'
 })
 
+const isOverdue = computed(() => {
+  if (!todo.value?.plannedDate || todo.value.isCompleted) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(todo.value.plannedDate)
+  due.setHours(0, 0, 0, 0)
+  return due < today
+})
+
 // 获取所有可用的列表（用于移动任务）
 const availableLists = computed(() => {
   // 获取"任务"列表和所有自定义列表
@@ -199,8 +208,11 @@ const handleMoveToList = (listId: string) => {
     <ContextMenu>
       <ContextMenuTrigger as-child>
         <div
-          class="flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group shadow-sm"
+          class="relative overflow-hidden flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 rounded-lg transition-colors cursor-pointer group shadow-sm"
         >
+          <!-- 过期标识 -->
+          <div v-if="isOverdue" class="absolute bottom-0 left-0 w-full h-1.5 bg-[#FFE586]"></div>
+
           <!-- 完成状态圆圈 -->
           <button
             class="flex-shrink-0 w-5 h-5 rounded-full border-2 transition-all hover:scale-110"
