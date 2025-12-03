@@ -10,6 +10,8 @@ import '@/style/index.css'
 import { setupRouterGuards } from './router'
 // 导入主题store
 import { useThemeStore } from './store/theme'
+// 导入提醒服务
+import { reminderService } from './services/reminderService'
 
 /**
  * 检查并迁移旧的 todos 数据格式
@@ -80,3 +82,6 @@ app.mount('#app')
 // 初始化主题系统
 const themeStore = useThemeStore()
 themeStore.initTheme()
+
+// 启动提醒服务（定时检查任务提醒并发送系统通知）
+reminderService.start()
