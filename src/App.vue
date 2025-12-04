@@ -11,12 +11,16 @@ import { Toaster } from '@/components/ui/sonner'
 import LoadingAnimation from '@/components/LoadingAnimation.vue'
 import { useLoadingStore } from '@/store'
 import { useSyncListCounts } from '@/composables/useSyncListCounts'
+import { useBadgeCount } from '@/composables/useBadgeCount'
 import 'vue-sonner/style.css'
 
 const loadingStore = useLoadingStore()
 
 // 同步列表计数
 useSyncListCounts()
+
+// 初始化任务栏角标
+useBadgeCount()
 </script>
 
 <style scoped>
