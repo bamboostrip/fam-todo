@@ -150,7 +150,7 @@ export const useListsStore = defineStore(
     }
 
     // 添加新列表
-    const addList = (name: string, icon: string = 'ListTodo') => {
+    const addList = (name: string, _theme?: undefined, icon: string = 'ListTodo') => {
       if (isNameDuplicate(name)) {
         throw new Error('列表名重复')
       }

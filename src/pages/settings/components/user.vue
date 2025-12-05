@@ -21,7 +21,7 @@ const router = useRouter()
 
 // 用户头像
 const userAvatar = computed(() => {
-  return userStore.userInfo.avatar || '/src/assets/avatar/avatar0.png'
+  return userStore.userInfo.avatar || new URL('@/assets/avatar/avatar0.png', import.meta.url).href
 })
 
 // 用户名
@@ -34,8 +34,13 @@ const nickName = computed(() => {
   return userStore.userInfo.nickName || '昵称'
 })
 
-// 默认头像列表
-const avatarList = Array.from({ length: 9 }, (_, i) => `/src/assets/avatar/avatar${i}.png`)
+// 默认头像列表 - 使用 import.meta.glob 动态导入
+const avatarModules = import.meta.glob('@/assets/avatar/avatar*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+})
+const avatarList = Object.values(avatarModules) as string[]
 
 // 当前选中的头像（用于弹窗内选择）
 const selectedAvatar = ref(userStore.userInfo.avatar || avatarList[0])

@@ -295,7 +295,7 @@ const isFormValid = computed(() => {
 })
 
 // 模拟注册 API
-const mockRegisterApi = async (inviteCode: string, username: string, password: string) => {
+const mockRegisterApi = async (inviteCode: string, username: string, _password: string) => {
   // 模拟网络延迟
   await new Promise((resolve) => setTimeout(resolve, 1500))
 

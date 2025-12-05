@@ -9,7 +9,7 @@ const isLoggedIn = (): boolean => {
 }
 
 export function setupRouterGuards(router: Router) {
-  router.beforeEach((to, from, next) => {
+  router.beforeEach((to, _from, next) => {
     console.log(`Navigating to: ${to.path}`)
 
     // 检查路由是否需要登录
@@ -29,7 +29,7 @@ export function setupRouterGuards(router: Router) {
     }
   })
 
-  router.afterEach((to, from) => {
+  router.afterEach((_to, _from) => {
     // 可以在这里添加一些路由切换后的逻辑，比如页面标题设置、分析等
     // console.log(`Mapsd to ${to.path}`);
     // 打印所有路由信息

@@ -18,7 +18,7 @@ const router = useRouter()
 
 // 用户头像
 const userAvatar = computed(() => {
-  return userStore.userInfo.avatar || '/src/assets/avatar/avatar0.png'
+  return userStore.userInfo.avatar || new URL('@/assets/avatar/avatar0.png', import.meta.url).href
 })
 
 // 用户名

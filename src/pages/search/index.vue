@@ -11,7 +11,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Search, Circle, Star, Sun, Calendar, FileText, ListChecks } from 'lucide-vue-next'
-import { useTodosStore, type Todo, type SubTodo } from '@/store/todos'
+import { useTodosStore, type Todo } from '@/store/todos'
 import { useListsStore } from '@/store/lists'
 import { useTodoDetailStore } from '@/store/todoDetail'
 
@@ -159,11 +159,6 @@ const handleToggleComplete = (todoId: string, event: Event) => {
 const handleToggleImportant = (todoId: string, event: Event) => {
   event.stopPropagation()
   todosStore.toggleImportant(todoId)
-}
-
-// 删除任务
-const handleDelete = (todoId: string) => {
-  todosStore.deleteTodo(todoId)
 }
 
 // 监听路由查询参数变化
