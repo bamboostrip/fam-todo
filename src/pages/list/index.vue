@@ -9,7 +9,12 @@
 </route>
 
 <template>
-  <TodoListLayout :listId="listId" :title="listName">
+  <TodoListLayout
+    :listId="listId"
+    :title="listName"
+    :hasCompletedTodos="completedListTodos.length > 0"
+    v-model:showCompleted="showCompletedTodos"
+  >
     <template #icon>
       <component :is="listIcon" class="w-8 h-8" />
     </template>
@@ -25,15 +30,15 @@
         />
       </div>
 
-      <!-- 已完成分组 -->
-      <div v-if="completedListTodos.length > 0" class="space-y-2">
+      <!-- 已完成分组 - 根据 showCompletedTodos 控制是否显示整个分组 -->
+      <div v-if="completedListTodos.length > 0 && showCompletedTodos" class="space-y-2">
         <button
           class="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors"
-          @click="showCompleted = !showCompleted"
+          @click="isCompletedExpanded = !isCompletedExpanded"
         >
           <span class="inline-flex items-center gap-1" :style="accentStyle">
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline :points="showCompleted ? '6 9 12 15 18 9' : '9 6 15 12 9 18'" />
+              <polyline :points="isCompletedExpanded ? '6 9 12 15 18 9' : '9 6 15 12 9 18'" />
             </svg>
             已完成
           </span>
@@ -41,7 +46,7 @@
             {{ completedListTodos.length }}
           </span>
         </button>
-        <div v-show="showCompleted" class="space-y-1">
+        <div v-show="isCompletedExpanded" class="space-y-1">
           <TodoItem
             v-for="todo in completedListTodos"
             :key="todo.id"
@@ -113,7 +118,10 @@ const completedListTodos = computed(() => {
   return todosStore.completedTodos.filter((t) => t.listId === listId.value)
 })
 
-const showCompleted = ref(false)
+// 是否显示已完成任务分组（由 TodoListLayout 的设置菜单控制，默认隐藏）
+const showCompletedTodos = ref(false)
+// 已完成任务分组是否展开（手风琴控制）
+const isCompletedExpanded = ref(false)
 
 const accentColor = computed(() => getTextColor(currentTheme.value))
 

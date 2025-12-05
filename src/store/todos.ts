@@ -533,6 +533,11 @@ export const useTodosStore = defineStore(
       }
     }
 
+    // 删除某个列表下的所有任务
+    const deleteTodosByListId = (listId: string) => {
+      todos.value = todos.value.filter((t) => t.listId !== listId)
+    }
+
     // ========== 子任务相关操作 ==========
 
     /**
@@ -725,6 +730,7 @@ export const useTodosStore = defineStore(
       // 其他
       updateNote,
       moveTodoToList,
+      deleteTodosByListId,
       // 子任务操作
       addStep,
       toggleStepComplete,

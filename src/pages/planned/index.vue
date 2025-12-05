@@ -9,12 +9,20 @@
 </route>
 
 <template>
-  <TodoListLayout listId="planned" title="计划内">
+  <TodoListLayout
+    listId="planned"
+    title="计划内"
+    :hasCompletedTodos="completedPlannedTodos.length > 0"
+    v-model:showCompleted="showCompletedTodos"
+  >
     <template #icon>
       <Calendar class="w-8 h-8" />
     </template>
 
-    <div v-if="allPlannedLikeTodos.length > 0" class="space-y-4">
+    <div
+      v-if="allPlannedLikeTodos.length > 0 || completedPlannedTodos.length > 0"
+      class="space-y-4"
+    >
       <!-- 先前（早于昨天） -->
       <div v-if="priorTodos.length > 0" class="space-y-2">
         <button
@@ -170,6 +178,32 @@
           />
         </div>
       </div>
+
+      <!-- 已完成分组 - 根据 showCompletedTodos 控制是否显示整个分组 -->
+      <div v-if="completedPlannedTodos.length > 0 && showCompletedTodos" class="space-y-2">
+        <button
+          class="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg bg-white/60 hover:bg-white transition-colors"
+          @click="showCompletedSection = !showCompletedSection"
+        >
+          <span class="inline-flex items-center gap-1" :style="accentStyle">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline :points="showCompletedSection ? '6 9 12 15 18 9' : '9 6 15 12 9 18'" />
+            </svg>
+            已完成
+          </span>
+          <span class="text-xs rounded px-1.5 py-0.5" :style="accentStyle">
+            {{ completedPlannedTodos.length }}
+          </span>
+        </button>
+        <div v-show="showCompletedSection" class="space-y-1">
+          <TodoItem
+            v-for="todo in completedPlannedTodos"
+            :key="todo.id"
+            :todo-id="todo.id"
+            @delete="handleDelete"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- 空状态 -->
@@ -244,7 +278,7 @@ const fmtRangeLabel = (start: Date, end: Date) => {
 // 所有属于“计划内”视图的任务：有截止日期 / 有提醒
 const allPlannedLikeTodos = computed(() => {
   return todosStore.todos.filter(
-    (t) => !t.isCompleted && (t.plannedDate !== null || t.reminderTime !== null),
+    (t) => !t.isCompleted && (t.plannedDate != null || t.reminderTime != null),
   )
 })
 
@@ -291,6 +325,16 @@ const nextFiveDaysRangeLabel = computed(() => {
   const e = addDays(today, 6)
   return fmtRangeLabel(s, e)
 })
+
+// 已完成的计划内任务（有截止日期或提醒时间且已完成的任务）
+const completedPlannedTodos = computed(() => {
+  return todosStore.completedTodos.filter((t) => t.plannedDate != null || t.reminderTime != null)
+})
+
+// 是否显示已完成任务分组（由 TodoListLayout 的设置菜单控制，默认隐藏）
+const showCompletedTodos = ref(false)
+// 已完成任务分组是否展开（手风琴控制）
+const showCompletedSection = ref(false)
 
 // 折叠开关
 const showPrior = ref(false)
