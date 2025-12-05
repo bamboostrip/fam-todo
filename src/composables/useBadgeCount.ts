@@ -41,8 +41,8 @@ export function useBadgeCount() {
   ): Promise<{ rgba: number[]; width: number; height: number } | null> => {
     if (count === 0) return null
 
-    // 提升到 512x512 超高清分辨率，确保缩放后依然锐利
-    const size = 512
+    // 提升到 1024x1024 超高清分辨率，确保缩放后依然锐利
+    const size = 1024
     const canvas = document.createElement('canvas')
     canvas.width = size
     canvas.height = size
@@ -71,8 +71,8 @@ export function useBadgeCount() {
     // 2. 绘制文字
     const text = count > 99 ? '99+' : count.toString()
 
-    // 字体设置：根据 512px 调整大小
-    const fontSize = count > 99 ? 256 : 320
+    // 字体设置：根据 1024px 调整大小
+    const fontSize = count > 99 ? 512 : 640
     // 使用系统字体栈，确保渲染效果最好
     ctx.font = `bold ${fontSize}px "Segoe UI", "Microsoft YaHei", Arial, sans-serif`
     ctx.fillStyle = 'white'
