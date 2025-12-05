@@ -21,6 +21,7 @@ export const THEME_COLORS = [
   { value: '#E7ECF0', textColor: '#586570' },
   { value: '#FCE4EC', textColor: '#AC395D' },
   { value: '#5F73C1', textColor: '#FFFFFF' },
+  { value: '#5C70BE', textColor: '#FFFFFF' },
 ]
 
 export const getTextColor = (theme: ListTheme | undefined): string => {
